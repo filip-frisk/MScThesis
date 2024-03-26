@@ -2,7 +2,7 @@
 
 Not packaged with setuptools and configurationsfiles, just good ol' main.py for ease
 
-List of Modules:
+## List of Modules:
     (1) data_viewer eqv. manipulate.py
     (2) model_fitting eqv. fit.py (multiprocessing)
     (3) model_predicting eqv. visualize.py
