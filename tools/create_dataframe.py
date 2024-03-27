@@ -3,25 +3,13 @@ import uproot
 import os 
 import pickle
 
-#DATA_RELATIVE_FOLDER_PATH = '../data/'
-#DATA_PATH_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 
-
-#SIGNAL_CHANNEL = ['VBF']
-#BACKGROUND_CHANNEL = ['WW', 'Zjets', 'ttbar']
-
-#SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
-#SELECTED_PHYSICAL_VARIABLES = ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig']
-
-# Change the working directory to the data folder
-
-# wrap the code in a function
-def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_PATH_WITHOUT_FILETYPE, SIGNAL_CHANNEL, BACKGROUND_CHANNEL, SELECTED_OTHER_VARIABLES, SELECTED_PHYSICAL_VARIABLES):
+def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_FILENAME_WITHOUT_FILETYPE, SIGNAL_CHANNEL, BACKGROUND_CHANNEL, SELECTED_OTHER_VARIABLES, SELECTED_PHYSICAL_VARIABLES):
 
     os.chdir(DATA_RELATIVE_FOLDER_PATH)
     print(f"Current working directory: {os.getcwd()}\n")
 
-    with uproot.open(f'{DATA_PATH_WITHOUT_FILETYPE}.root') as root_file: # context manager to automatically close the file
+    with uproot.open(f'{DATA_FILENAME_WITHOUT_FILETYPE}.root') as root_file: # context manager to automatically close the file
 
         print("You successfully loaded the following trees/channels:")
 
@@ -60,4 +48,4 @@ def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_PATH_WITHOUT_FILETYPE, SIGN
     print(f"Dataframe sample applied channel and variable selections:\n{df_selected.sample(5)}")
 
     # Save the dataframe to a pickle file
-    df_selected.to_pickle(f'{DATA_PATH_WITHOUT_FILETYPE}.pkl')
+    df_selected.to_pickle(f'{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
