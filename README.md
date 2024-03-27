@@ -7,23 +7,33 @@ Not packaged with setuptools and configurationsfiles, just good ol' python for t
     (2) model_fitting eqv. fit.py (multiprocessing)
     (3) model_predicting eqv. visualize.py
 
-## List of tools:
-    (1) ML_metrics
+## List of tools in tools/:
+    (1) ML_metrics 
     (2) 
     (3) 
 
-## data_viewer
+## create_dataframe
 
 ### input: 
     (1) ROOT file with cuts applied with HWWAnalysisCode
 
 ### parameter:
-    (1) list of kinetic variables 
+    (1) list of kinetic variables
     (2) specify signal and background labels
     (3) PATH to save data in data/ and Histogram in
 
 ### output:
     (1) Saved pandas dataframe (with pickle .pkl and in folder), Name: ROOTFILENAME+DATE
+    
+## pretty_histogram_of_dataframe
+
+### input:
+    (1) Saved pandas dataframe
+
+### parameter:
+    (1) none?
+    
+### output:
     (2) Kinematic Histograms of selected variables in atlasStyle all-in-one and separate (saved as png and in folder)
 
 ## model_fitting
