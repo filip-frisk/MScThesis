@@ -1,11 +1,16 @@
 # Filips Framework
 
-Not packaged with setuptools and configurationsfiles, just good ol' main.py for ease
+Not packaged with setuptools and configurationsfiles, just good ol' python for transparency 
 
 ## List of Modules:
     (1) data_viewer eqv. manipulate.py
     (2) model_fitting eqv. fit.py (multiprocessing)
     (3) model_predicting eqv. visualize.py
+
+## List of tools:
+    (1) ML_metrics
+    (2) 
+    (3) 
 
 ## data_viewer
 
@@ -36,7 +41,6 @@ Not packaged with setuptools and configurationsfiles, just good ol' main.py for 
     (1) Models saved as pickle-files (in folder with pickle) , Name: ROOTFILENAME+DATE+MODEL_TYPE+#.pkl
     (2) Class distributions per model y_pred in pkl
     (3) X_test and y_test in pkl (So we can can check channel e t c)
-    (4) 
 
 
 ## model_predicting
