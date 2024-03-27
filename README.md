@@ -1,16 +1,21 @@
 # Filips Framework
 
-Not packaged with setuptools and configurationsfiles, just good ol' python for transparency 
+Not packaged with setuptools and configurationsfiles, just good ol' main.py python for transparency and ease. 
+
+Much effort were made to make this code approachable for MSc students with background with some background with typicall scikit-learn ML.
 
 ## List of Modules:
-    (1) data_viewer eqv. manipulate.py
+    (1) data_viewer 
     (2) model_fitting eqv. fit.py (multiprocessing)
     (3) model_predicting eqv. visualize.py
 
 ## List of tools in tools/:
     (1) ML_metrics 
-    (2) 
-    (3) 
+    (2) create_dataframe eqv. manipulate.py
+    (3) clean eqv. manipulate.py
+    (3) plot 
+
+    # df = df.replace([np.inf, -np.inf], np.nan) # replace inf with nan in df if needed  In my case sumOfCentralitiesL and centralityL1 and centralityL2 are inf
 
 ## create_dataframe
 
@@ -79,4 +84,4 @@ Not packaged with setuptools and configurationsfiles, just good ol' python for t
 
 """
 
-# 
+# FREEZE PIP ENVIROMENT AND ADD ALL IN A REQUIREMENTS FILE WHEN DONE LATER 
