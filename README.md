@@ -1,36 +1,47 @@
 # Filips Framework
 
+My MSc project via KTH.
+
 Not packaged with setuptools and configurationsfiles, just good ol' main.py python for transparency and ease. 
 
-Much effort were made to make this code approachable for MSc students with background with some background with typicall scikit-learn ML.
+Much effort were made to make this code approachable for MSc students with a pythonic background and basic scikit-learn ML knowledge.
 
-## List of Modules:
-    (1) data_viewer 
-    (2) model_fitting eqv. fit.py (multiprocessing)
-    (3) model_predicting eqv. visualize.py
+THIS REPO IS UNDER CONSTRUCTION!
 
-## List of tools in tools/:
-    (1) ML_metrics 
-    (2) create_dataframe eqv. manipulate.py
-    (3) clean eqv. manipulate.py
-    (3) plot 
+This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode.
 
-    # df = df.replace([np.inf, -np.inf], np.nan) # replace inf with nan in df if needed  In my case sumOfCentralitiesL and centralityL1 and centralityL2 are inf
+## Howto
+
+Change UPPERCASE variables in main.py and comment out tools needed.
+
+If I am still not around email me at filiplbfrisk(at)gmail.com and I will gladly help you out.
+
+## List of tools currently built in tools/:
+- create_dataframe.py: Using pickle and with channel and variables selections
+- create_pretty_histograms.py: Using matplotlib and Atlasify plotting 5 to 95th percentile of the data   
+-  metrics.py: Manually implemented ML metrics such as confusion matrix, accuracy, recall, precision e t c not dependent on scikit-learn.
 
 ## create_dataframe
 
-### input: 
-    (1) ROOT file with cuts applied with HWWAnalysisCode
+First it loops through all trees in your rootfile, then it trimmed the trees by channel selection and trimmed the leaves by varaiable selection. Eventually the trimmed root file is save in your data folder (create if you do not have it already). Take a look at line 29 there I applied specific label trimming relevant for my naming convention for my rootfile, you probably need to change this.
 
-### parameter:
-    (1) list of kinetic variables
-    (2) specify signal and background labels
-    (3) PATH to save data in data/ and Histogram in
+### Input
+- ROOT file with cuts applied in HWWAnalysisCode
+
+### Parameters 
+- `DATA_RELATIVE_FOLDER_PATH` ex. 'data/'
+- `DATA_FILENAME_WITHOUT_FILETYPE` ex. 'ntuples-ggFVBF2jet-SF-28Jan24'
+- `SIGNAL_CHANNEL` ex. ['VBF']
+- `BACKGROUND_CHANNEL` ex. ['WW', 'Zjets', 'ttbar']
+- `SELECTED_OTHER_VARIABLES` ex ['eventType','label','eventNumber','weight']
+- `SELECTED_PHYSICAL_VARIABLES`ex ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig']
 
 ### output:
-    (1) Saved pandas dataframe (with pickle .pkl and in folder), Name: ROOTFILENAME+DATE
+    (1) Saved pandas dataframe (with pickle .pkl and in folder)
     
-## pretty_histogram_of_dataframe
+## create_pretty_histograms
+
+This uses https://pypi.org/project/atlasify/ and matplotlib in a pythonic way..
 
 ### input:
     (1) Saved pandas dataframe

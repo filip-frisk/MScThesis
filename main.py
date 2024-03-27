@@ -18,7 +18,6 @@ SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad','GeV','GeV','length???','GeV','GeV','
 
 
 # run if you want to create a new dataframe
-
 create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_FILENAME_WITHOUT_FILETYPE, SIGNAL_CHANNEL, BACKGROUND_CHANNEL, SELECTED_OTHER_VARIABLES, SELECTED_PHYSICAL_VARIABLES)
 
 # run if you want to load an old dataframe
@@ -56,7 +55,6 @@ ALL_PHYSICAL_VARIABLES_UNITS = [
 ]
 
 Trees/channels:
-
 * Tree/channel: HWW_Data;1, with 281,950 MC simulations and 281,950.00 total event weight.
 * Tree/channel: HWW_Vgamma;1, with 38,521 MC simulations and 10,570.94 total event weight.
 * Tree/channel: HWW_Zjets;1, with 4,505,202 MC simulations and 209,848.92 total event weight.
