@@ -31,10 +31,13 @@ def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_FILENAME_WITHOUT_FILETYPE, 
     df.insert(0, 'eventType', df['label'].apply(lambda x: 'Signal' if x in SIGNAL_CHANNEL else 'Background')) # add a column with the event type
 
     print("\n")
-    print(f"Variables from each channel: {', '.join(df.columns)}")
+    print(f"Data points from each channel in  {len(df.columns)} columns: {', '.join(df.columns)}")
     print("\n")
-
-    print(f"Dataframe sample without selections:\n{df.sample(5)}\n")
+    
+    total_weight = df.groupby('label')['weight'].sum().sum()
+    formatted_total_weight = "{:,.0f}".format(total_weight)
+    
+    print(f"Dataframe sample without selections with {df.shape[0]:,} MC samples and total event weight {formatted_total_weight}:\n{df.sample(5)}\n")
 
     print(f"Selected channels: {SIGNAL_CHANNEL + BACKGROUND_CHANNEL} with {SIGNAL_CHANNEL[0]} as signal.\n")
     df_selected_channel = df[df['label'].isin(SIGNAL_CHANNEL + BACKGROUND_CHANNEL)]    
@@ -44,10 +47,15 @@ def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_FILENAME_WITHOUT_FILETYPE, 
 
     df_selected_channel_and_variables = df_selected_channel[SELECTED_OTHER_VARIABLES + SELECTED_PHYSICAL_VARIABLES]
 
-    print(f"Dataframe sample applied channel and variable selections:\n{df_selected_channel_and_variables.sample(5)}")
+    total_weight = df_selected_channel_and_variables.groupby('label')['weight'].sum().sum()
+    formatted_total_weight = "{:,.0f}".format(total_weight)
+
+    print(f"Dataframe sample with applied selections with {df_selected_channel_and_variables.shape[0]:,} MC samples and total event weight {formatted_total_weight}:\n{df_selected_channel_and_variables.sample(5)}")
 
     # Save selected dataframe to a pickle file
+    
     df_selected_channel_and_variables.to_pickle(f'{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
     
     # change back to the original directory
     os.chdir('..')
+    

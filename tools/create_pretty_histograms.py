@@ -26,7 +26,7 @@ def plot_one_physical_variable(df, physical_variable, unit, signal, background, 
         plot_weights.append(df.loc[df['label'] == bkg]['weight'])
         plot_labels.append(bkg)
         
-    # get signal data, label and weights
+    # get signal data, label and weights 
     plot_data.append(df.loc[df['label'] == signal[0]][physical_variable]) 
     plot_weights.append(df.loc[df['label'] == signal[0]]['weight'])
     plot_labels.append(signal[0])
@@ -37,9 +37,23 @@ def plot_one_physical_variable(df, physical_variable, unit, signal, background, 
     lower_bound = np.percentile(flattened_data, 5)    
     upper_bound = np.percentile(flattened_data, 95)
 
-    bounds = (lower_bound, upper_bound) 
+    # get data not included in bound from flattened data
+    data_outside_bounds = flattened_data[(flattened_data < lower_bound) | (flattened_data > upper_bound)] # 10% of data of course
+    print(len(data_outside_bounds)/len(flattened_data)*100, '% of data is outside the bounds')
 
+    bounds = (lower_bound, upper_bound) # TODO implement overflow and underflow on last bin, add 50% of the data in last and first bin respectively?
+    
+    SCALE = 5000 # TODO fixate dynamically later
+
+    # get signal data and scale it to the largest background
+    signal_scaled = df.loc[df['label'] == signal[0]][physical_variable] 
+    signal_weight = df.loc[df['label'] == signal[0]]['weight']*SCALE
+    signal_label = f"{signal[0]} x {SCALE}"
+    
+    # plot signal shape and stacked shape of background and signal
+    plt.hist(signal_scaled, bins=50, label=signal_label, weights=signal_weight, range=bounds, histtype='step', color=colors[-1])
     plt.hist(plot_data, bins=50, label=plot_labels, weights=plot_weights, stacked=True, range=bounds, alpha=0.5, histtype='stepfilled', color=colors)
+
     plt.xlabel(r'${} \ [{}]$'.format(physical_variable, unit))
     plt.ylabel('Events')
     plt.legend(loc='upper right')

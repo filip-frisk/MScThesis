@@ -21,7 +21,7 @@ If I am still not around email me at filiplbfrisk(at)gmail.com and I will gladly
 - create_pretty_histograms.py: Using matplotlib and Atlasify plotting 5 to 95th percentile of the data   
 -  metrics.py: Manually implemented ML metrics such as confusion matrix, accuracy, recall, precision e t c not dependent on scikit-learn.
 
-## create_dataframe
+## create_dataframe (DONE)
 
 First it loops through all trees in your rootfile, then it trimmed the trees by channel selection and trimmed the leaves by varaiable selection. Eventually the trimmed root file is save in your data folder (create if you do not have it already). Take a look at line 29 there I applied specific label trimming relevant for my naming convention for my rootfile, you probably need to change this.
 
@@ -39,27 +39,36 @@ First it loops through all trees in your rootfile, then it trimmed the trees by 
 ### output:
     (1) Saved pandas dataframe (with pickle .pkl and in folder)
     
-## create_pretty_histograms
+## create_pretty_histograms (NEEDS REBUILD for dynamic scaling and overflow/underflow)
 
 This uses https://pypi.org/project/atlasify/ and matplotlib in a pythonic way..
 
 ### input:
-    (1) Saved pandas dataframe
+    - Saved pandas dataframe
 
 ### parameter:
-    (1) none?
+    document as above 
     
 ### output:
-    (2) Kinematic Histograms of selected variables in atlasStyle all-in-one and separate (saved as png and in folder)
+    - Kinematic Histograms of selected variables in atlasStyle all-in-one and separate (saved as png and in folder)
 
-## model_fitting
-
+## pre_process_data (DONE)
+    - 
 ### input:
     (1) Saved pandas dataframe (with pickle .pkl)
 
 ### parameters:
-    (1) specify if binary or multiclass classification
-    (2) list of sklearn-models used in analysis #TODO add https://gitlab.cern.ch/ahmarkho/ggffml and https://gitlab.cern.ch/bejaeger/sfusmlkit
+    (1) specify if class or label classification (if final probability distribution is normalized to 1 or not)
+    (2) specify if binary (signal vs bkg) or multiclass (signal vs bkg1 vs bkg2 vs bkg3 ....) 
+    (3) test splitt
+
+## output:
+    (1) df_train and df_test (including all eventType, label, eventNumber, weights for ) - needed later 
+    (2) X_train, y_train_true_labels  : X_test, y_test_true_labels
+    (2) 
+
+## model_fitting
+    (2) list of sklearn-models used in analysis 
     (3) Test to train split
     (4) Number of created models per model type (N of iterations to boxplot) (have in main instead?)
     
@@ -68,6 +77,7 @@ This uses https://pypi.org/project/atlasify/ and matplotlib in a pythonic way..
     (2) Class distributions per model y_pred in pkl
     (3) X_test and y_test in pkl (So we can can check channel e t c)
 
+#TODO add https://gitlab.cern.ch/ahmarkho/ggffml and https://gitlab.cern.ch/bejaeger/sfusmlkit
 
 ## model_predicting
 
