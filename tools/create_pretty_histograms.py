@@ -5,7 +5,7 @@ import numpy as np
 import os 
 
 
-def plot_one_physical_variable(df, physical_variable, unit, signal, background, cut,DATA_FILENAME_WITHOUT_FILETYPE, OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH):
+def plot_one_physical_variable(df, physical_variable, unit, signal, background, cut,DATA_FILENAME_WITHOUT_FILETYPE, OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH,PLOT_TYPE,SIGNAL_ENVELOPE_SCALE):
     plt.figure()
     
     plot_data = []
@@ -51,8 +51,6 @@ def plot_one_physical_variable(df, physical_variable, unit, signal, background, 
     for channel in plot_data:
         channel = np.clip(channel, lower_bound, upper_bound)
 
-    SIGNAL_ENVELOPE_SCALE = 5000 # easier to guess than to scale dynamically 
-
     # get signal data and scale it to the largest background
     signal_scaled = df.loc[df['label'] == signal[0]][physical_variable] 
     signal_weight = df.loc[df['label'] == signal[0]]['weight']*SIGNAL_ENVELOPE_SCALE
@@ -69,7 +67,8 @@ def plot_one_physical_variable(df, physical_variable, unit, signal, background, 
     plt.hist(signal_scaled, bins=BINS, label=signal_label, weights=normalized_signal_weight, range=bounds, histtype='step', color=colors[-1])
     plt.hist(plot_data, bins=BINS, label=plot_labels, weights=normalized_plot_weights, stacked=True, range=bounds, alpha=0.5, histtype='stepfilled', color=colors)
     plt.xlim(lower_bound, upper_bound) # No white space 
-    plt.xlabel(r'${} \ [{}]$'.format(physical_variable, unit))
+    #plt.xlabel(r'${} \ [{}]$'.format(physical_variable, unit))
+    plt.xlabel(f'{physical_variable}')
     plt.ylabel(f'Events/{bin_width:.2f} {unit}')
     plt.legend(loc='upper right')
     
@@ -81,11 +80,11 @@ def plot_one_physical_variable(df, physical_variable, unit, signal, background, 
     ax.ticklabel_format(style='plain', axis='both', scilimits=(0,0))
 
     os.chdir(PLOT_RELATIVE_FOLDER_PATH)
-    plt.savefig(f'prefit_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}.png')
+    plt.savefig(f'{PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}.png')
     os.chdir('..')
     
     # print what you have saved in short format
-    print(f"Saved prefit_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}.png in plots/ .")
+    print(f"Saved {PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}.png in plots/ .")
     
     #plt.show()
     plt.close()

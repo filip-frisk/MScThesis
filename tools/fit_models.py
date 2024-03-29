@@ -41,7 +41,7 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_FILENAME_WITHOUT_FIL
             start_time = time.time()
             if CLASSIFICATION_TYPE == 'binary':
             
-                model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType'])
+                model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
                 
             elif CLASSIFICATION_TYPE == 'multi-class':
                 pass

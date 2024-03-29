@@ -31,9 +31,11 @@ from tools.create_pretty_histograms import plot_one_physical_variable
 
 OVERFLOW_UNDERFLOW_PERCENTILE = {'lower_bound': 5, 'upper_bound': 95} # ex 1% and 99% percentile, all data outside this range will be added to the last and first bin respectively
 BINS = 20
+PLOT_TYPE = 'prefit' # 'postfit
+SIGNAL_ENVELOPE_SCALE = 5000 # easier to guess than to scale dynamically 
 
 #for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABLES_UNITS):
-#    plot_one_physical_variable(df, variable, unit, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH)     
+#    plot_one_physical_variable(df, variable, unit, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SCALE)     
 
 ######################################### DATA PREPROCESSING #########################################
 
@@ -85,13 +87,27 @@ MODELS = [
 #   GaussianNB()
 ]
 
-print(MODELS)
+# fit_models(DATA_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,MODELS,SELECTED_PHYSICAL_VARIABLES,MODELS_RELATIVE_FOLDER_PATH,CLASSIFICATION_TYPE)
 
-fit_models(DATA_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,MODELS,SELECTED_PHYSICAL_VARIABLES,MODELS_RELATIVE_FOLDER_PATH,CLASSIFICATION_TYPE)
+######################################### EVALUATE MODELS #########################################
 
-######################################### DATA TRAINING #########################################
+from tools.evaluate_models import evaluate_models
 
-
+evaluate_models(
+    PLOT_RELATIVE_FOLDER_PATH,
+    MODELS_RELATIVE_FOLDER_PATH,
+    EXPERIMENT_ID,
+    DATA_RELATIVE_FOLDER_PATH,
+    DATA_FILENAME_WITHOUT_FILETYPE,
+    K_FOLD,
+    CLASS_WEIGHT,
+    MODELS,
+    CLASSIFICATION_TYPE,
+    SIGNAL_CHANNEL,
+    BACKGROUND_CHANNEL,
+    CUT,
+    SELECTED_PHYSICAL_VARIABLES
+)
 """ In root file ggFVBF2jet-SF-28Jan24.root, you have the following:
 Variables:
 
