@@ -1,3 +1,4 @@
+# THIS REPO IS UNDER CONSTRUCTION!
 # Filips Framework
 
 My MSc project via KTH.
@@ -5,8 +6,6 @@ My MSc project via KTH.
 Not packaged with setuptools and configurationsfiles, just good ol' main.py python for transparency and ease. 
 
 Much effort were made to make this code approachable for MSc students with a pythonic background and basic scikit-learn ML knowledge.
-
-THIS REPO IS UNDER CONSTRUCTION!
 
 This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode.
 
