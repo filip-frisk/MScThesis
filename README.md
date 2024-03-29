@@ -11,18 +11,13 @@ No ROOT tools are used and all algorithms are built by hand using python librari
 
 This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode.
 
-## Howto
+## Howto (DOCUMENTATION INCOMPLETE)
 
 Change UPPERCASE variables in main.py and comment out tools needed.
 
 If I am still not around email me at filiplbfrisk(at)gmail.com and I will gladly help you out.
 
-## List of tools currently built in tools/:
-- create_dataframe.py: Using pickle and with channel and variables selections
-- create_pretty_histograms.py: Using matplotlib and Atlasify plotting 5 to 95th percentile of the data   
--  metrics.py: Manually implemented ML metrics such as confusion matrix, accuracy, recall, precision e t c not dependent on scikit-learn.
-
-## create_dataframe (DONE)
+## create_dataframe
 
 First it loops through all trees in your rootfile, then it trimmed the trees by channel selection and trimmed the leaves by varaiable selection. Eventually the trimmed root file is save in your data folder (create if you do not have it already). Take a look at line 29 there I applied specific label trimming relevant for my naming convention for my rootfile, you probably need to change this.
 
