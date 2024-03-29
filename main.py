@@ -1,17 +1,15 @@
 import pickle 
 
-from tools.create_dataframe import create_dataframe
-
-from tools.create_pretty_histograms import plot_one_physical_variable
-
-from tools.pre_process_data import pre_process_data
-
-######################## PATHS & FILENAME ########################
+######################################### PATHS & FILENAME #########################################
+# All relative to main folder
 DATA_RELATIVE_FOLDER_PATH = 'data/28Jan24/'
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
+PLOT_RELATIVE_FOLDER_PATH = 'plots/'
+MODELS_RELATIVE_FOLDER_PATH = 'models/'
+######################################### DATA SELECTION #########################################
 
-######################## DATA SELECTION #################################
+from tools.create_dataframe import create_dataframe
 
 SIGNAL_CHANNEL = ['VBF']
 BACKGROUND_CHANNEL = ['WW', 'Zjets', 'ttbar'] # order in size event weight or MC samples
@@ -27,29 +25,73 @@ SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?e
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
 
-######################## DATA VISUALIZATION ########################
+######################################### DATA VISUALIZATION #########################################
+
+from tools.create_pretty_histograms import plot_one_physical_variable    
+
 OVERFLOW_UNDERFLOW_PERCENTILE = {'lower_bound': 5, 'upper_bound': 95} # ex 1% and 99% percentile, all data outside this range will be added to the last and first bin respectively
 BINS = 20
 
-for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABLES_UNITS):
-    plot_one_physical_variable(df, variable, unit, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS)     
+#for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABLES_UNITS):
+#    plot_one_physical_variable(df, variable, unit, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH)     
 
-######################## DATA PREPROCESSING ########################
+######################################### DATA PREPROCESSING #########################################
+
+from tools.pre_process_data import pre_process_data
+
 TRAIN_DATA_SIZE = 0.8
 RANDOM_SEED = None # 42
 EXPERIMENT_ID = '240328_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
-CLASS_WEIGHT = 'tot_bkg_as_sgn' # alt.'as_is' or 'bkg_as_VBF' or tot_bkg_as_VBF
+CLASS_WEIGHT = 'tot_bkg_as_sgn' # alt.'as_is' or 'bkg_as_sgn'(signal = 1/3 background size) or tot_bkg_as_VBF(signal = background size) 
 
+# one dataframe
+# K_FOLD = 1
+#pre_process_data(df,TRAIN_DATA_SIZE,RANDOM_SEED,EXPERIMENT_ID,DATA_RELATIVE_FOLDER_PATH,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,SIGNAL_CHANNEL,BACKGROUND_CHANNEL)
 
-# run if you want to pre-process the data
+# multiple dataframes
 #for K_FOLD in range(1,6):
 #    print(f"Starting analysing K-Fold: {K_FOLD}")
 #    pre_process_data(df,TRAIN_DATA_SIZE,RANDOM_SEED,EXPERIMENT_ID,DATA_RELATIVE_FOLDER_PATH,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,SIGNAL_CHANNEL,BACKGROUND_CHANNEL)
 
+######################################### DATA TRAINING #########################################
+
+from tools.fit_models import fit_models
+
+#from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
+#from sklearn.neural_network import MLPClassifier
+#from sklearn.svm import SVC
+#from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+#from sklearn.tree import DecisionTreeClassifier
+#from sklearn.naive_bayes import GaussianNB
+
+K_FOLD = 1
+CLASS_WEIGHT = 'tot_bkg_as_sgn' 
+CLASS_WEIGHT = 'as_is' 
+CLASS_WEIGHT = 'bkg_as_sgn' 
+
+CLASSIFICATION_TYPE = 'binary' # 'multi-label', 'multi-class', 'binary'
+
+# See https://scikit-learn.org/stable/supervised_learning.html 
+MODELS = [
+#    GradientBoostingClassifier(),
+    RandomForestClassifier(),
+#    MLPClassifier(),
+#    SVC(),  # SVM with probability estimates
+#    KNeighborsClassifier(),
+    LogisticRegression(),
+#   DecisionTreeClassifier(),
+#   GaussianNB()
+]
+
+print(MODELS)
+
+fit_models(DATA_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,MODELS,SELECTED_PHYSICAL_VARIABLES,MODELS_RELATIVE_FOLDER_PATH,CLASSIFICATION_TYPE)
+
+######################################### DATA TRAINING #########################################
 
 
-
-    
 """ In root file ggFVBF2jet-SF-28Jan24.root, you have the following:
 Variables:
 

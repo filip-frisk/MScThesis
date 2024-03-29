@@ -5,7 +5,7 @@ import numpy as np
 import os 
 
 
-def plot_one_physical_variable(df, physical_variable, unit, signal, background, cut,DATA_FILENAME_WITHOUT_FILETYPE, OVERFLOW_UNDERFLOW_PERCENTILE,BINS):
+def plot_one_physical_variable(df, physical_variable, unit, signal, background, cut,DATA_FILENAME_WITHOUT_FILETYPE, OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH):
     plt.figure()
     
     plot_data = []
@@ -80,7 +80,7 @@ def plot_one_physical_variable(df, physical_variable, unit, signal, background, 
     ax = plt.gca() # Get the current axis
     ax.ticklabel_format(style='plain', axis='both', scilimits=(0,0))
 
-    os.chdir('plots/')
+    os.chdir(PLOT_RELATIVE_FOLDER_PATH)
     plt.savefig(f'prefit_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}.png')
     os.chdir('..')
     

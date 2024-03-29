@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 # The 'stratify' parameter is set to the 'label' column to maintain its distribution in the train and test datasets.
 def pre_process_data(df,TRAIN_DATA_SIZE,RANDOM_SEED,EXPERIMENT_ID,DATA_RELATIVE_FOLDER_PATH,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,SIGNAL_CHANNEL,BACKGROUND_CHANNEL):
 
+    print(f"You have chosen class wieghting: {CLASS_WEIGHT}.")
+
     # check for nan values in data
     
     print(f"\nFound {df.isnull().sum().sum()} NaN values in MC Samples\n")
@@ -53,7 +55,6 @@ def pre_process_data(df,TRAIN_DATA_SIZE,RANDOM_SEED,EXPERIMENT_ID,DATA_RELATIVE_
     else:
         raise ValueError("CLASS_WEIGHT must be 'as_is' or 'bkg_as_VBF' or tot_bkg_as_VBF ")
     # proportions of train and test data if stratify is not None
-
 
 
     # count the total number of MC samples
@@ -142,8 +143,8 @@ def pre_process_data(df,TRAIN_DATA_SIZE,RANDOM_SEED,EXPERIMENT_ID,DATA_RELATIVE_
     # save the dataframes to pickle files
     os.chdir(DATA_RELATIVE_FOLDER_PATH)
     os.makedirs(EXPERIMENT_ID, exist_ok=True)
-    df_train.to_pickle(f'{EXPERIMENT_ID}/{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_train.pkl')
-    df_test.to_pickle(f'{EXPERIMENT_ID}/{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_test.pkl')
+    df_train.to_pickle(f'{EXPERIMENT_ID}/{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASS_WEIGHT}_train.pkl')
+    df_test.to_pickle(f'{EXPERIMENT_ID}/{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASS_WEIGHT}_test.pkl')
     os.chdir('../..')
 
 
