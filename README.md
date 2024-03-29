@@ -7,6 +7,8 @@ Not packaged with setuptools and configurationsfiles, just good ol' main.py pyth
 
 Much effort were made to make this code approachable for MSc students with a pythonic background and basic scikit-learn ML knowledge.
 
+No ROOT tools are used and all algorithms are built by hand using python libraries.
+
 This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode.
 
 ## Howto
