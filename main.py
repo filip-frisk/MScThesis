@@ -17,9 +17,11 @@ SIGNAL_CHANNEL = ['VBF']
 BACKGROUND_CHANNEL = ['WW', 'Zjets', 'ttbar'] # order in size event weight or MC samples
 
 SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
-SELECTED_PHYSICAL_VARIABLES = ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig']
-SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad','GeV','GeV','length???','GeV','GeV','GeV','GeV','GeV','GeV','GeV','GeV','GeV','Unitless'] # eta_l_centrality missing?
-
+SELECTED_PHYSICAL_VARIABLES = ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # eta_l_centrality missing?
+SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV',''] # Is it really GeV? units? '' empty for unitless
+### DATA VISUALIZATION ###
+OVERFLOW_UNDERFLOW_PERCENTILE = {'lower_bound': 5, 'upper_bound': 95} # ex 1% and 99% percentile, all data outside this range will be added to the last and first bin respectively
+BINS = 20
 ### DATA PREPROCESSING ###
 TRAIN_DATA_SIZE = 0.8
 RANDOM_SEED = None # 42
@@ -34,9 +36,11 @@ with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb
     df = pickle.load(f)
 
 # create kinetic plots for entire dataframe
+    
 for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABLES_UNITS):
-    plot_one_physical_variable(df, variable, unit, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE)
-    break 
+    plot_one_physical_variable(df, variable, unit, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS)     
+
+
 # run if you want to pre-process the data
 #for K_FOLD in range(1,6):
 #    print(f"Starting analysing K-Fold: {K_FOLD}")
