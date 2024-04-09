@@ -25,7 +25,8 @@ def pre_process_data(df,TRAIN_DATA_SIZE,RANDOM_SEED,EXPERIMENT_ID,DATA_RELATIVE_
     
     if CLASS_WEIGHT == 'as_is':
         df_train, df_test =train_test_split(df, train_size=TRAIN_DATA_SIZE, random_state=RANDOM_SEED, shuffle=True, stratify=df['label']) 
-    elif CLASS_WEIGHT == 'bkg_as_sgn':
+    
+    elif CLASS_WEIGHT == 'bkg_as_sgn': # TODO : need to take as many as weight not as MC samples 
 
         signal_MCSamples = df[df['label'] == SIGNAL_CHANNEL[0]].shape[0]
 

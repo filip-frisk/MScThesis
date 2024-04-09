@@ -11,6 +11,11 @@ No ROOT tools are used and all algorithms are built by hand using python librari
 
 This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode.
 
+## Installation
+python3 -m venv venv-filipsframework
+source venv-filipsframework/bin/activate
+pip3 install pandas numpy atlasify matplotlib uproot scikit-learn
+
 ## Howto (DOCUMENTATION INCOMPLETE)
 
 Change UPPERCASE variables in main.py and comment out tools needed.

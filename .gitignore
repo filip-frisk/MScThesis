@@ -8,3 +8,7 @@ plots/
 __pycache__
 .DS_Store
 .history/
+
+
+# Ignore virtual environment
+venv-filipsframework/

@@ -44,7 +44,9 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_FILENAME_WITHOUT_FIL
                 model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
                 
             elif CLASSIFICATION_TYPE == 'multi-class':
-                pass
+
+                model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['label']) # predict label  
+                
             elif CLASSIFICATION_TYPE == 'multi-label':
                 pass
             else:
