@@ -88,8 +88,11 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH,MODELS_RELATIVE_FOLDER_PATH,EXPERI
     plot_variables = plot_variables[0] # TODO fix later when scaled up with multiple folds
     SIGNAL_ENVELOPE_SCALE = 500 # easier to guess than to scale dynamically
 
+    NORMALIZE_WEIGHTS = False
+
     for variables in plot_variables:
-        plot_one_physical_variable(df_test, variables, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE)
+        plot_one_physical_variable(df_test, variables, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS)
+        break
     ######################################### ROC PLOTS #########################################
 
     ######################################### ML METRIC PLOTS #########################################

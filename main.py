@@ -1,5 +1,7 @@
 import pickle 
 
+# Parameters are in capital letters
+
 ########################################################## PATHS & FILENAME ##########################################################
 
 # All relative to main folder
@@ -61,19 +63,21 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 """
 
 # Old dataframe
-"""
+
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
-"""
+
 ########################################################## DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
-"""
+
 from tools.create_pretty_histograms import plot_one_physical_variable    
 overflow_underflow_percentile = {'lower_bound': 5, 'upper_bound': 95} # ex 1% and 99% percentile, all data outside this range will be added to the last and first bin respectively
 bins = 20
 plot_type = 'prefit' # 'postfit
 signal_envelope_scale = 5000 # easier to guess than to scale dynamically 
+
+NORMALIZE_WEIGHTS = False
 
 for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABLES_UNITS):
     plot_one_physical_variable(df, 
@@ -87,8 +91,10 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
                                bins,
                                PLOT_RELATIVE_FOLDER_PATH, 
                                plot_type,
-                               signal_envelope_scale)  
-"""
+                               signal_envelope_scale,
+                               NORMALIZE_WEIGHTS)  
+    
+
 
 ########################################################## DATA PREPROCESSING ##########################################################
 
@@ -150,6 +156,7 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
 """
 ########################################################## EVALUATE MODELS ##########################################################
 
+""" 
 from tools.evaluate_models import evaluate_models
 
 k_fold = 1
@@ -169,7 +176,8 @@ evaluate_models(
     CUT,
     SELECTED_PHYSICAL_VARIABLES
 )
-
+"""
+########################################################## CURRENT DATASET ##########################################################
 """ In root file ggFVBF2jet-SF-28Jan24.root, you have the following:
 Variables:
 
