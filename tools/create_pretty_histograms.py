@@ -176,7 +176,11 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     
     
     # needed for pre-fit to get the correct bin edges
-    total_bin_edges = [round(bin_edge,2) for bin_edge in total_bin_edges.tolist()]
+    if PLOT_TYPE == 'prefit':
+        total_bin_edges = [round(bin_edge,2) for bin_edge in total_bin_edges.tolist()]
+    
+    if PLOT_TYPE == 'postfit':
+        pass
     
     x_labels = [f'[{round(total_bin_edges[i],2)},{round(total_bin_edges[i+1],2)}]' for i in range(len(total_bin_edges)-1)]
     print(f"X-labels: {x_labels}")
