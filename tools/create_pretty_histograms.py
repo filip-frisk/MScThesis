@@ -6,7 +6,6 @@ import os
 
 def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, cut,DATA_FILENAME_WITHOUT_FILETYPE, OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH,PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS):
     
-
     ####### SELECT COLORS: CHANGE IF NEEDED! #######
 
     # colors as https://arxiv.org/pdf/2207.00338.pdf
@@ -34,7 +33,7 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     plot_weights.append(df.loc[df['label'] == SIGNAL[0]]['weight'])
     plot_labels.append(SIGNAL[0])
 
-    ####### Overflow and underflow #######
+    ####### Overflow and underflow /Inclusive and exclusive #######
 
     if PLOT_TYPE == 'prefit': # Under/over flow not needed for the prefit
     
@@ -132,8 +131,6 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     ############################################################################
 
     plt.figure()
-
-    #if PLOT_TYPE == 'postfit': # TODO: rebuild this function to be more general and not only for postfit
     
     # Calculate how many events we have in total and per label
     events_per_label = {}
@@ -168,7 +165,6 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     print(f"Number of signal events: {[round(hist,0) for hist in signal_hist]}")
     print(f"Number of background events: {[round(hist,0) for hist in background_hist]}")
     print(f"Signal-to-noise ratio: {[round(ratio,2) for ratio in signal_to_noise_ratio]}")
-
 
     plt.bar(total_bin_edges[:-1], signal_to_noise_ratio, width=bin_width, align='edge', color=colors[-1], alpha=0.5, edgecolor='black', linewidth=1.5)
     
@@ -211,9 +207,8 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     ################### COMBINED PLOT FOR MAIN AND SIGNAL-TO-NOISE #############
     ############################################################################
 
-    # Create a new figure with subplots, 6.4, 4.8 is the default size
+    
     _, (ax_top, ax_bottom) = plt.subplots(2, 1, figsize=(8,6), height_ratios = [3, 1])
-
 
     # Plot main histogram on ax_top
     ax_top.hist(plot_data, bins=BINS, label=plot_labels, weights=normalized_plot_weights, stacked=True, range=bounds, alpha=0.5, histtype='stepfilled', color=colors)
@@ -221,7 +216,7 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     
     ax_top.set_ylabel(f'Events')
     ax_top.legend(loc='upper right')
-    ax_top.set_xticks([]) # Remove x-ticks
+    ax_top.set_xticks([]) 
 
     if PLOT_TYPE == 'prefit':
         atlasify(atlas = True, axes=ax_top,subtext = subtext_latex + " " + str(int(sum(total_hist)))+ f" events with ca. {int(events_per_label[SIGNAL[0]])} signal events from {int(MCsamples_per_labels[SIGNAL[0]])} MC Samples, " + f"{OVERFLOW_UNDERFLOW_PERCENTILE['lower_bound']}% overflow/underflow " , sub_font_size = 8)
@@ -237,21 +232,18 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     
     ax_bottom_second_y_axis = ax_bottom.twinx()
     ax_bottom_second_y_axis.plot(total_bin_edges[:-1]+bin_width/2, signal_hist, color='black', marker='o', linestyle='--', linewidth=1.5)
-    # add numbers over each marker 
+    
     for i in range(len(signal_hist)):
         ax_bottom_second_y_axis.text(total_bin_edges[i]+bin_width/2, signal_hist[i]+0.3, f"{round((signal_to_noise_ratio[i]),1)}/{round((signal_hist[i]),1)}", ha='center', va='bottom')
     ax_bottom_second_y_axis.set_ylabel('Signal events')    
     
     ax_bottom.set_ylim(0, max(signal_to_noise_ratio)*1.1)
     ax_bottom.set_ylabel('(Tot. - Bkg)/Bkg')
-    ax_bottom.set_xlabel(f'{physical_variable}')
-
-    # round to two decimals 
+    ax_bottom.set_xlabel(f'{physical_variable}')    
     
     if PLOT_TYPE == 'prefit':
         ax_bottom.set_xticklabels(x_labels, rotation=90)
 
-    # add a table below with 
 
     plt.tight_layout()
 
@@ -264,3 +256,62 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     os.chdir('..')
     #plt.show()
     plt.close()
+
+    ############################################################################
+    ############################ 2207.00338 Table 5 ############################
+    ############################################################################
+  
+    if PLOT_TYPE == 'postfit':
+    
+        # get total number of events in test data
+        total_test_events = df.groupby('label')['weight'].sum().to_dict()
+        total_test_events['Total'] = sum(total_test_events.values())
+        total_test_events['Total bkg'] = total_test_events['Total'] - total_test_events[SIGNAL[0]]
+        total_test_events['Sgn/Bkg'] = total_test_events[SIGNAL[0]]/total_test_events['Total bkg']
+        
+
+        bottom_edge_in_last_bin = total_bin_edges[-2]
+        bottom_bin_string = x_labels[-1]
+
+        # get total number of events in test data in the last bin
+
+        last_bin_test_events = df.loc[df[physical_variable] > bottom_edge_in_last_bin].groupby('label')['weight'].sum().to_dict()
+        last_bin_test_events['Total'] = sum(last_bin_test_events.values())
+        last_bin_test_events['Total bkg'] = last_bin_test_events['Total'] - last_bin_test_events[SIGNAL[0]]
+        last_bin_test_events['Sgn/Bkg'] = last_bin_test_events[SIGNAL[0]]/last_bin_test_events['Total bkg']
+            
+
+        # Creating DataFrame to save 
+        df_tmp = pd.DataFrame({
+            'Test Events': total_test_events,
+            f'{physical_variable}:{bottom_bin_string}': last_bin_test_events
+        })
+
+        # save to pickle
+        os.chdir(PLOT_RELATIVE_FOLDER_PATH)
+        # if file exists
+        if os.path.exists(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl'):
+            df_tmp_existing = pd.read_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+            df_tmp = pd.concat([df_tmp_existing, df_tmp], axis=1)
+            df_tmp = df_tmp.loc[:,~df_tmp.columns.duplicated()]
+            df_tmp.round(decimals=1)
+            df_tmp.to_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+            print("File exists, adding to it.")
+            # Save to csv and save over it if existing 
+            df_tmp.to_csv(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.csv')
+        else:
+            # delete csv and pickle if already exists
+            if os.path.exists(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.csv'):
+                os.remove(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.csv')
+            
+            if os.path.exists(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl'):
+                os.remove(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+            df_tmp.to_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+            
+            print("Saved temporary pickle file.")
+
+    
+        os.chdir('..')
+    
+        
+

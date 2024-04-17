@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 
 from .create_pretty_histograms import plot_one_physical_variable
 
+#Sklearn has a lot of irrelevant warnings that we want to ignore
+import warnings
+warnings.filterwarnings("ignore")
+
 
 def evaluate_models(PLOT_RELATIVE_FOLDER_PATH,MODELS_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_RELATIVE_FOLDER_PATH,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,MODELS,CLASSIFICATION_TYPE,SIGNAL_CHANNEL,BACKGROUND_CHANNEL,CUT,SELECTED_PHYSICAL_VARIABLES):
     
@@ -43,7 +47,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH,MODELS_RELATIVE_FOLDER_PATH,EXPERI
             if CLASSIFICATION_TYPE == 'binary':
                 df_distribution = pd.DataFrame(model.predict_proba(df_test[SELECTED_PHYSICAL_VARIABLES]), columns=model.classes_)
                 
-                output_variable = f'MVAOutput_fold{K_FOLD}_{model.__class__.__name__}' # VBF-like
+                output_variable = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.__class__.__name__}' # VBF-like
             
             elif CLASSIFICATION_TYPE == 'multi-class':
                 pass
@@ -55,20 +59,20 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH,MODELS_RELATIVE_FOLDER_PATH,EXPERI
             df_test = df_test.reset_index(drop=True)
             df_test[output_variable] = df_distribution['Signal']    
             
-            print(f"Finished evaluation for model: {model.__class__.__name__}\n")
+            print(f"Finished evaluation for model: {model.__class__.__name__} for K-Fold:{K_FOLD}\n")
         
         ### Ensamble results ###
     
         # mean
         
-        df_test[f'MVAOutput_fold{K_FOLD}_Mean_Ensamble'] = df_test[output_variables].mean(axis=1)
+        df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble'] = df_test[output_variables].mean(axis=1)
 
         # median
-        df_test[f'MVAOutput_fold{K_FOLD}_Median_Ensamble'] = df_test[output_variables].median(axis=1)
+        df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble'] = df_test[output_variables].median(axis=1)
 
         
-        output_variables.append(f'MVAOutput_fold{K_FOLD}_Mean_Ensamble')
-        output_variables.append(f'MVAOutput_fold{K_FOLD}_Median_Ensamble')
+        output_variables.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble')
+        output_variables.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble')
 
         # Save plot variables 
         plot_variables.append(output_variables)
@@ -94,7 +98,8 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH,MODELS_RELATIVE_FOLDER_PATH,EXPERI
         # plot all variables
         for variables in plot_variables:
             plot_one_physical_variable(df_test, variables, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS)
-            
+
+    
     ######################################### ML metric PLOTS #########################################
 
     if CLASSIFICATION_TYPE == 'binary':
@@ -196,18 +201,12 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH,MODELS_RELATIVE_FOLDER_PATH,EXPERI
             y_pred_col = output_variable
             tpr, fpr = roc_curve(df_test_ML_Metrics, y_true_col, y_pred_col, THRESHOLDS)
             
-
             # calculate area under the curve or AUC
 
-            sorted_indices = np.argsort(fpr) # X axis 7 fpr in ascending order to not get negative values
-
-            print(f"{output_variable} tpr: {tpr[sorted_indices]}\n")
-            print(f"{output_variable} fpr: {fpr[sorted_indices]}\n")
+            sorted_indices = np.argsort(fpr) # X axis fpr in ascending order to not get negative values
 
             AUC = np.trapz(tpr[sorted_indices], fpr[sorted_indices])
 
-
-            
             plt.plot(fpr, tpr, label=f'{output_variable}, AUC = {AUC:.2f}')
             
         # add random classifier as comparison

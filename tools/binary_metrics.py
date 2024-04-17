@@ -45,7 +45,7 @@ def roc_curve(df, y_true_col, y_pred_col, THRESHOLDS):
     for i, threshold in enumerate(THRESHOLDS):
         df['tmp_prediction_column'] = predict_threshold(df, y_pred_col, threshold)
         TP, TN, FP, FN = confusion_matrix(df, y_true_col, 'tmp_prediction_column')
-        print(TP, TN, FP, FN)
+        
         tpr[i] = recall(TP, FN)
         fpr[i] = false_alarm_rate(FP, TN)
 
