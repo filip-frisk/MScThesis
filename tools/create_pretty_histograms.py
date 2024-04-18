@@ -171,18 +171,13 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     
     plt.xlim(bounds)
     
-    
-    # needed for pre-fit to get the correct bin edges
-    if PLOT_TYPE == 'prefit':
-        total_bin_edges = [round(bin_edge,2) for bin_edge in total_bin_edges.tolist()]
-    
-    if PLOT_TYPE == 'postfit':
-        pass
-    
-    x_labels = [f'[{round(total_bin_edges[i],2)},{round(total_bin_edges[i+1],2)}]' for i in range(len(total_bin_edges)-1)]
+    # for styling of the x-axis
+    total_bin_edges_rounded = [round(bin_edge,2) for bin_edge in total_bin_edges.tolist()]    
+    x_labels = [f'[{round(total_bin_edges_rounded[i],2)},{round(total_bin_edges_rounded[i+1],2)}]' for i in range(len(total_bin_edges_rounded)-1)]
     print(f"X-labels: {x_labels}")
-    plt.xticks(total_bin_edges[:-1]+bin_width/2, x_labels, rotation=0)
 
+    plt.xticks(total_bin_edges[:-1]+bin_width/2, x_labels, rotation=0)
+    
     plt.ylabel('(Tot. - Bkg)/Bkg')
     plt.xlabel('MVA Output')
 
@@ -244,8 +239,7 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     
     if PLOT_TYPE == 'prefit':
         ax_bottom.set_xticklabels(x_labels, rotation=90)
-
-
+        
     plt.tight_layout()
 
     os.chdir(PLOT_RELATIVE_FOLDER_PATH)
@@ -287,15 +281,15 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
             'Test Events': total_test_events,
             f'{physical_variable}:{bottom_bin_string}': last_bin_test_events
         })
-
+        df_tmp = df_tmp.round(decimals=1)
         # save to pickle
         os.chdir(PLOT_RELATIVE_FOLDER_PATH)
         # if file exists
         if os.path.exists(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl'):
             df_tmp_existing = pd.read_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
             df_tmp = pd.concat([df_tmp_existing, df_tmp], axis=1)
+            #df_tmp.round(decimals=1)
             df_tmp = df_tmp.loc[:,~df_tmp.columns.duplicated()]
-            df_tmp.round(decimals=1)
             df_tmp.to_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
             print("File exists, adding to it.")
             # Save to csv and save over it if existing 
@@ -311,7 +305,7 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
             
             print("Saved temporary pickle file.")
 
-    
+        print(f"\n All plots for {physical_variable} done\n")
         os.chdir('..')
     
         

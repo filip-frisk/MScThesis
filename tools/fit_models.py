@@ -3,7 +3,18 @@ import pickle
 import os
 import time
 
-def fit_models(DATA_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_FILENAME_WITHOUT_FILETYPE,K_FOLD,CLASS_WEIGHT,MODELS,SELECTED_PHYSICAL_VARIABLES,MODELS_RELATIVE_FOLDER_PATH,CLASSIFICATION_TYPE):
+from typing import List
+
+def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
+               EXPERIMENT_ID: str,
+               DATA_FILENAME_WITHOUT_FILETYPE: str,
+               K_FOLD: int,
+               CLASS_WEIGHT: str,
+               MODELS: List[object],
+               SELECTED_PHYSICAL_VARIABLES: list,
+               MODELS_RELATIVE_FOLDER_PATH: str,
+               CLASSIFICATION_TYPE: str
+            ) -> None:
     
     # create experiment ID folder in plots/
     os.chdir(MODELS_RELATIVE_FOLDER_PATH)
@@ -43,14 +54,12 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH,EXPERIMENT_ID,DATA_FILENAME_WITHOUT_FIL
             
                 model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
                 
-            elif CLASSIFICATION_TYPE == 'multi-class':
+            elif CLASSIFICATION_TYPE == 'multi_class':
 
-                model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['label']) # predict label  
-                
-            elif CLASSIFICATION_TYPE == 'multi-label':
-                pass
+                model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['label']) # predict: label  
+            
             else:
-                raise ValueError(f"CLASSIFICATION_TYPE: {CLASSIFICATION_TYPE} not supported. Choose 'binary', 'multi-class' or 'multi-label")
+                raise ValueError(f"CLASSIFICATION_TYPE: {CLASSIFICATION_TYPE} not supported. Choose 'binary' or'multi-class' ")
             
             end_time = time.time()
             print(f"Training ended for fitting model: {model.__class__.__name__} it took {end_time-start_time:.2f} seconds \n")

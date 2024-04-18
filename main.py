@@ -25,11 +25,11 @@ CLASS_WEIGHT = 'MC_EACH_bkg_as_sgn' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
-CLASSIFICATION_TYPE = 'binary' # Normalized distributions: 'multi-class', 'binary' Non-normalized: 'multi-label'
+CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' 
 
 #from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
-#from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPClassifier
 #from sklearn.svm import SVC
 #from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
@@ -37,17 +37,19 @@ from sklearn.linear_model import LogisticRegression
 #from sklearn.naive_bayes import GaussianNB
 
 # See https://scikit-learn.org/stable/supervised_learning.html 
+# Same NN as https://gitlab.cern.ch/ahmarkho/ggffml/-/blob/master/configs/fit_0jet.cfg?ref_type=heads, sklearn does not support dropout layers
+
 MODELS = [
 #    GradientBoostingClassifier(),
     RandomForestClassifier(),
-#    MLPClassifier(),
+#   MLPClassifier(),
+    MLPClassifier(hidden_layer_sizes = (128,64,16,),activation='relu',batch_size=2048, solver='adam', learning_rate_init=0.001, beta_1=0.95, beta_2=0.9, max_iter=1000), # no dropout used 
 #    SVC(),  # SVM with probability estimates
 #    KNeighborsClassifier(),
     LogisticRegression(),
 #   DecisionTreeClassifier(),
 #   GaussianNB()
 ]
-
 ########################################################## DATA SELECTION ##########################################################
 
 # New dataframe
@@ -63,10 +65,10 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 """
 
 # Old dataframe
-
+"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
-
+"""
 ########################################################## DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -99,7 +101,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 ########################################################## DATA PREPROCESSING ##########################################################
 
 # One dataframe
-
+"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -116,7 +118,7 @@ pre_process_data(df,
                  CLASS_WEIGHT,
                  SIGNAL_CHANNEL,
                  BACKGROUND_CHANNEL)
-
+"""
 
 # Multiple dataframes
 """
@@ -142,6 +144,7 @@ for k_fold in range(1,6):
 
 """
 from tools.fit_models import fit_models
+
 k_fold = 1
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -154,9 +157,10 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
            MODELS_RELATIVE_FOLDER_PATH,
            CLASSIFICATION_TYPE)
 """
+           
 ########################################################## EVALUATE MODELS ##########################################################
 
-""" 
+
 from tools.evaluate_models import evaluate_models
 
 K_FOLD = 1
@@ -176,7 +180,7 @@ evaluate_models(
     CUT,
     SELECTED_PHYSICAL_VARIABLES
 )
-"""
+
 
 ###################################################### CURRENT DATASET: 28Jan24 ########################################################
 """ In root file ggFVBF2jet-SF-28Jan24.root, you have the following:
