@@ -8,7 +8,7 @@ import pickle
 DATA_RELATIVE_FOLDER_PATH = 'data/28Jan24/'
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240328_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240418_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 PLOT_RELATIVE_FOLDER_PATH = 'plots/'
 MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
@@ -21,7 +21,7 @@ SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
 SELECTED_PHYSICAL_VARIABLES = ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # eta_l_centrality missing?
 SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV',''] # Is it really GeV? units? '' empty for unitless
 
-CLASS_WEIGHT = 'bkg_as_sgn' # alt.'as_is' or 'bkg_as_sgn' or tot_bkg_as_VBF
+CLASS_WEIGHT = 'MC_EACH_bkg_as_sgn' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
@@ -63,10 +63,10 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 """
 
 # Old dataframe
-"""
+
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
-"""
+
 ########################################################## DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -99,13 +99,13 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 ########################################################## DATA PREPROCESSING ##########################################################
 
 # One dataframe
-"""
+
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
 random_seed = None # 42
 
-# k_fold = 1
+k_fold = 0
 pre_process_data(df,
                  training_data_size,
                  random_seed,
@@ -116,7 +116,7 @@ pre_process_data(df,
                  CLASS_WEIGHT,
                  SIGNAL_CHANNEL,
                  BACKGROUND_CHANNEL)
-"""
+
 
 # Multiple dataframes
 """
@@ -156,10 +156,9 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
 """
 ########################################################## EVALUATE MODELS ##########################################################
 
-#""" 
+""" 
 from tools.evaluate_models import evaluate_models
 
-# Number of K-Folds
 K_FOLD = 1
 
 evaluate_models(
@@ -177,9 +176,9 @@ evaluate_models(
     CUT,
     SELECTED_PHYSICAL_VARIABLES
 )
-#"""
+"""
 
-########################################################## CURRENT DATASET ##########################################################
+###################################################### CURRENT DATASET: 28Jan24 ########################################################
 """ In root file ggFVBF2jet-SF-28Jan24.root, you have the following:
 Variables:
 

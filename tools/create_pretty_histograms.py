@@ -6,6 +6,10 @@ import os
 
 def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, cut,DATA_FILENAME_WITHOUT_FILETYPE, OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH,PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS):
     
+    ############################################################################
+    ######################## PLOT MAIN HISTOGRAM ###############################
+    ############################################################################
+    
     ####### SELECT COLORS: CHANGE IF NEEDED! #######
 
     # colors as https://arxiv.org/pdf/2207.00338.pdf
@@ -84,9 +88,6 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
         normalized_signal_weight = signal_weight
         normalized_plot_weights = plot_weights
 
-    ############################################################################
-    ######################## PLOT MAIN HISTOGRAM ###############################
-    ############################################################################
 
     plt.figure()
 
