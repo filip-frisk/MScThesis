@@ -3,7 +3,7 @@
 
 This framework constitutes my MSc project via KTH in the HWW Analysis team.
 
-This is a end-to-end framewrok where the user arrives with a HWWAnalysisCode cutted MC sample .root file and leaves with prefit and postfit histograms in atlasific style with N probability distributions that can be used as final discrimintant between your signal and background and. 
+This is a end-to-end framework where the user arrives with a HWWAnalysisCode cutted MC sample .root file and leaves with prefit and postfit histograms in atlasific style with N probability distributions that can be used as final discrimintant between your signal and background and. 
 
 The framework is essentially a wrapper around scikit-learn using good ol' machine learning model instead of DNN paradigm, even though plain vanilla neural nets are supported.
 
