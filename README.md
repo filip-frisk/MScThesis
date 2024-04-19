@@ -1,30 +1,49 @@
 # THIS REPO IS UNDER CONSTRUCTION!
 # Filips Framework
 
-My MSc project via KTH.
+This framework constitutes my MSc project via KTH in the HWW Analysis team.
 
-Not packaged with setuptools and configurationsfiles, just good ol' main.py python for transparency and ease. 
+This is a end-to-end framewrok where the user arrives with a HWWAnalysisCode cutted MC sample .root file and leaves with prefit and postfit histograms in atlasific style with N probability distributions that can be used as final discrimintant between your signal and background and. 
 
-Much effort were made to make this code approachable for MSc students with a pythonic background and basic scikit-learn ML knowledge.
+The framework is essentially a wrapper around scikit-learn using good ol' machine learning model instead of DNN paradigm, even though plain vanilla neural nets are supported.
 
-No ROOT tools are used and all algorithms are built by hand using python libraries.
-
-This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode.
+If I am still not around email me at filiplbfrisk(at)gmail.com or contact via https://www.linkedin.com/in/filipfrisk/ and I will gladly help you out.
 
 ## Installation
-`python3 -m venv venv-filipsframework`
-`source venv-filipsframework/bin/activate`
-`pip3 install pandas numpy atlasify matplotlib uproot scikit-learn`
 
-## Howto (DOCUMENTATION INCOMPLETE)
+The framework is not packaged with setuptools and configurationsfiles, just good ol' main.py python for transparency and ease. Much effort were made to make this code approachable for MSc students with a pythonic background and basic scikit-learn ML knowledge and method. No ROOT tools or C/C++ code are used, all algorithms are built by hand using python libraries.
 
-Change UPPERCASE variables in main.py and comment out tools needed.
+Run the following commands in your terminal:
+```console
+python3 -m venv venv-filipsframework
+source venv-filipsframework/bin/activate
+pip3 install pandas numpy atlasify matplotlib uproot scikit-learn
+mkdir data models plots
+```
+This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode, add it to data/ folder just created.
 
-If I am still not around email me at filiplbfrisk(at)gmail.com and I will gladly help you out.
+FYI, Python 3.12.2 was used, use this version if you get version conflicts. 
 
-## create_dataframe
+## Howto 
 
-First it loops through all trees in your rootfile, then it trimmed the trees by channel selection and trimmed the leaves by varaiable selection. Eventually the trimmed root file is save in your data folder (create if you do not have it already). Take a look at line 29 there I applied specific label trimming relevant for my naming convention for my rootfile, you probably need to change this.
+The project is based on UPPERCASE variables in main.py, tools needed are called sequentially. Use docstring to comment out the tools not needed. For example create_dataframe is only needed once per root file. 
+
+Tools included are (sequential):
+1. create_dataframe.py
+2. create_pretty_histograms.py
+3. pre_process_data.py
+4. evaluate_models.py (also uses 2. and 5.)
+5. metrics.py
+
+---
+
+# Detailed documentation per file
+
+---
+
+## 1. create_dataframe
+
+First it loops through all trees in your rootfile, then it trimmed the trees by channel selection and trimmed the leaves by varaiable selection. Eventually the trimmed root file is save in your data folder. Take a look at line 38 there I applied specific label trimming relevant for my naming convention for my rootfile, you probably need to change this.
 
 ### Input
 - ROOT file with cuts applied in HWWAnalysisCode
@@ -38,72 +57,47 @@ First it loops through all trees in your rootfile, then it trimmed the trees by 
 - `SELECTED_PHYSICAL_VARIABLES`ex ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig']
 
 ### output:
-    (1) Saved pandas dataframe (with pickle .pkl and in folder)
-    
-## create_pretty_histograms (NEEDS REBUILD for dynamic scaling and overflow/underflow)
 
-This uses https://pypi.org/project/atlasify/ and matplotlib in a pythonic way..
+---
+
+## create_pretty_histograms 
+
+This uses https://pypi.org/project/atlasify/ and matplotlib in a pythonic way.
 
 ### input:
-    - Saved pandas dataframe
-
 ### parameter:
-    document as above 
-    
 ### output:
-    - Kinematic Histograms of selected variables in atlasStyle all-in-one and separate (saved as png and in folder)
+    
+---
 
-## pre_process_data (DONE)
-    - 
+## 2. create_pretty_histograms
+
 ### input:
-    (1) Saved pandas dataframe (with pickle .pkl)
-
-### parameters:
-    (1) specify if class or label classification (if final probability distribution is normalized to 1 or not)
-    (2) specify if binary (signal vs bkg) or multiclass (signal vs bkg1 vs bkg2 vs bkg3 ....) 
-    (3) test splitt
-
-## output:
-    (1) df_train and df_test (including all eventType, label, eventNumber, weights for ) - needed later 
-    (2) X_train, y_train_true_labels  : X_test, y_test_true_labels
-    (2) 
-
-## model_fitting
-    (2) list of sklearn-models used in analysis 
-    (3) Test to train split
-    (4) Number of created models per model type (N of iterations to boxplot) (have in main instead?)
-    
+### parameter:
 ### output:
-    (1) Models saved as pickle-files (in folder with pickle) , Name: ROOTFILENAME+DATE+MODEL_TYPE+#.pkl
-    (2) Class distributions per model y_pred in pkl
-    (3) X_test and y_test in pkl (So we can can check channel e t c)
 
-#TODO add https://gitlab.cern.ch/ahmarkho/ggffml and https://gitlab.cern.ch/bejaeger/sfusmlkit
+---
 
-## model_predicting
+## 3. pre_process_data
 
-
-### preliminaty calculations:
-    (1) class prediction for each model on same test set as txt-files with np.argmax on class probability 
-
-### ML-prf metrics metrics:
-    (0) Set predict to np.argmax()
-        (1) accuracy = (TP + TN) / (TP + TN + FP + FN)
-        (2) precision = quality = TP / (TP + FP) 
-        (3) recall = hit rate = TP / (TP + FN) = TPR
-        (4) F1 = 2 * (precision * recall) / (precision + recall)
-        (5) false alarm = FP / (FP + TN) = FPR
-    (00) Set threashold in calc 
-        (6) Calculate ROC curve and AUC score : based on hit rate and false alarm with different thresholds
-
+### input:
+### parameter:
 ### output:
-    ()
-    
-### plots:
-    (2) Boxplot of accuracy of models compared with all ensamble model 
-    (2) Boxplot of accuracy of models compared with filipsFramework vs ahmedsFramework vs benjaminFramework
-    (3) ROC curve of models compared with filipsFramework vs ahmedsFramework vs benjaminFramework
 
-"""
+---
 
-# FREEZE PIP ENVIROMENT AND ADD ALL IN A REQUIREMENTS FILE WHEN DONE LATER 
+## 4. evaluate_models
+
+### input:
+### parameter:
+### output:
+
+---
+
+## 5. metrics
+
+### input:
+### parameter:
+### output:
+
+---
