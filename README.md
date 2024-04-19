@@ -7,6 +7,10 @@ This is a end-to-end framewrok where the user arrives with a HWWAnalysisCode cut
 
 The framework is essentially a wrapper around scikit-learn using good ol' machine learning model instead of DNN paradigm, even though plain vanilla neural nets are supported.
 
+This is an alternative ML framework to https://gitlab.cern.ch/bejaeger/sfusmlkit and https://gitlab.cern.ch/ahmarkho/ggffml which uses https://gitlab.cern.ch/fsauerbu/freeforestml which is a Keras DNN framework implementation. 
+
+## Contact
+
 If I am still not around email me at filiplbfrisk(at)gmail.com or contact via https://www.linkedin.com/in/filipfrisk/ and I will gladly help you out.
 
 ## Installation
@@ -60,17 +64,9 @@ First it loops through all trees in your rootfile, then it trimmed the trees by 
 
 ---
 
-## create_pretty_histograms 
+## 2. create_pretty_histograms
 
 This uses https://pypi.org/project/atlasify/ and matplotlib in a pythonic way.
-
-### input:
-### parameter:
-### output:
-    
----
-
-## 2. create_pretty_histograms
 
 ### input:
 ### parameter:
