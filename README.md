@@ -9,6 +9,8 @@ The framework is essentially a wrapper around scikit-learn using good ol' machin
 
 This is an alternative ML framework to https://gitlab.cern.ch/bejaeger/sfusmlkit and https://gitlab.cern.ch/ahmarkho/ggffml which uses https://gitlab.cern.ch/fsauerbu/freeforestml which is a Keras DNN framework implementation. 
 
+Analysis I performed with the framework: Same flavour VBF HWW N_jet >= 2 DNN.
+
 ## Contact
 
 If I am still not around email me at filiplbfrisk(at)gmail.com or contact via https://www.linkedin.com/in/filipfrisk/ and I will gladly help you out.
