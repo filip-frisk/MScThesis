@@ -43,8 +43,6 @@ Tools included are (sequential):
 
 # Detailed documentation per file
 
----
-
 ## 1. create_dataframe
 
 First it loops through all trees in your rootfile, then it trimmed the trees by channel selection and trimmed the leaves by varaiable selection. Eventually the trimmed root file is save in your data folder. Take a look at line 38 there I applied specific label trimming relevant for my naming convention for my rootfile, you probably need to change this.
@@ -53,14 +51,15 @@ First it loops through all trees in your rootfile, then it trimmed the trees by 
 - ROOT file with cuts applied in HWWAnalysisCode
 
 ### Parameters 
-- `DATA_RELATIVE_FOLDER_PATH` ex. 'data/'
-- `DATA_FILENAME_WITHOUT_FILETYPE` ex. 'ntuples-ggFVBF2jet-SF-28Jan24'
-- `SIGNAL_CHANNEL` ex. ['VBF']
-- `BACKGROUND_CHANNEL` ex. ['WW', 'Zjets', 'ttbar']
-- `SELECTED_OTHER_VARIABLES` ex ['eventType','label','eventNumber','weight']
-- `SELECTED_PHYSICAL_VARIABLES`ex ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig']
+- `DATA_RELATIVE_FOLDER_PATH: string` ex. 'data/'
+- `DATA_FILENAME_WITHOUT_FILETYPE: string` ex. 'ntuples-ggFVBF2jet-SF-28Jan24'
+- `SIGNAL_CHANNEL: List[strings]` ex. ['VBF']
+- `BACKGROUND_CHANNEL: List[strings]` ex. ['WW', 'Zjets', 'ttbar']
+- `SELECTED_OTHER_VARIABLES: List[strings]` ex ['eventType','label','eventNumber','weight']
+- `SELECTED_PHYSICAL_VARIABLES: List[strings]`ex ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig']
 
 ### output:
+- Selected dataframe with NAME.pkl in folder data/ 
 
 ---
 
