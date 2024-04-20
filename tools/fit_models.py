@@ -1,4 +1,3 @@
-
 import pickle
 import os
 import time
@@ -19,12 +18,11 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
     # create experiment ID folder in plots/
     os.chdir(MODELS_RELATIVE_FOLDER_PATH)
     os.makedirs(EXPERIMENT_ID, exist_ok=True)
-
-    # change back to the main directory
     os.chdir('..')
 
     print("\n")
     print("Starting training with...")
+    print(f"Number of models: {len(MODELS)} with K-Fold: {K_FOLD} so {len(MODELS)*K_FOLD} models will be trained\n")
     print(f"Models: {MODELS}")
     print(f"Class weight: {CLASS_WEIGHT}")
     print(f"Classificaiton type: {CLASSIFICATION_TYPE}")
@@ -42,7 +40,7 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
             df_train = pickle.load(f)
         
         # change back to the main directory
-        os.chdir('../../..')
+        os.chdir('../..')
 
         os.chdir(MODELS_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
 
@@ -71,10 +69,5 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
                 pickle.dump(model, f)
         
         # change back to the main directory
+    
         os.chdir('../..')
-
-
-        
-
-    
-    

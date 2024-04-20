@@ -4,7 +4,24 @@ import pandas as pd
 import numpy as np
 import os 
 
-def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, cut,DATA_FILENAME_WITHOUT_FILETYPE, OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH,PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS):
+from typing import List
+
+def create_pretty_histograms(df: pd.DataFrame,
+                                plot_variable: str, 
+                                UNIT: str, 
+                                SIGNAL: List[str], 
+                                BACKGROUND: List[str], 
+                                cut: str,
+                                DATA_FILENAME_WITHOUT_FILETYPE: str, 
+                                OVERFLOW_UNDERFLOW_PERCENTILE: dict[str,float],
+                                BINS: int,
+                                PLOT_RELATIVE_FOLDER_PATH: str,
+                                PLOT_TYPE: str,
+                                SIGNAL_ENVELOPE_SCALE: int,
+                                NORMALIZE_WEIGHTS: bool,
+                                K_FOLD: int,
+                                EXPERIMENT_ID: str
+                                ) -> None:
     
     ############################################################################
     ######################## PLOT MAIN HISTOGRAM ###############################
@@ -28,12 +45,12 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     
     # get background data
     for bkg in sorted(BACKGROUND, key=lambda x: len(df.loc[df['label'] == x]), reverse=True): # sort to get the largest background in the bottom of histogram
-        plot_data.append(df.loc[df['label'] == bkg][physical_variable])
+        plot_data.append(df.loc[df['label'] == bkg][plot_variable])
         plot_weights.append(df.loc[df['label'] == bkg]['weight'])
         plot_labels.append(bkg)
         
     # get signal data (added last to be on top of the stack)
-    plot_data.append(df.loc[df['label'] == SIGNAL[0]][physical_variable]) 
+    plot_data.append(df.loc[df['label'] == SIGNAL[0]][plot_variable]) 
     plot_weights.append(df.loc[df['label'] == SIGNAL[0]]['weight'])
     plot_labels.append(SIGNAL[0])
 
@@ -67,7 +84,7 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
      
 
     # Create envelope for signal
-    signal_scaled = df.loc[df['label'] == SIGNAL[0]][physical_variable] 
+    signal_scaled = df.loc[df['label'] == SIGNAL[0]][plot_variable] 
     signal_weight = df.loc[df['label'] == SIGNAL[0]]['weight'] * SIGNAL_ENVELOPE_SCALE
     signal_label = f"{SIGNAL[0]} x {SIGNAL_ENVELOPE_SCALE}"
 
@@ -98,10 +115,10 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     # plt.xlim(0, 1) # No white space 
 
     if PLOT_TYPE == 'prefit':   
-        plt.xlabel(r'${} \ [{}]$'.format(physical_variable, unit))
-        plt.ylabel(f'Events/{bin_width:.2f} {unit}')
+        plt.xlabel(r'${} \ [{}]$'.format(plot_variable, UNIT))
+        plt.ylabel(f'Events/{bin_width:.2f} {UNIT}')
     if PLOT_TYPE == 'postfit':
-        plt.xlabel(f'{physical_variable}')
+        plt.xlabel(f'{plot_variable}')
         plt.ylabel(f'Events')
     
     plt.legend(loc='upper right')
@@ -116,13 +133,15 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     ax = plt.gca() # Get the current axis
     ax.ticklabel_format(style='plain', axis='both', scilimits=(0,0))
     
-    os.chdir(PLOT_RELATIVE_FOLDER_PATH)
+    os.makedirs(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID, exist_ok=True)
+
+    os.chdir(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
     
-    plt.savefig(f'{PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}.png',dpi = 600) # 
-    os.chdir('..')
+    plt.savefig(f'{PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{plot_variable}.png',dpi = 600) # 
+    os.chdir('../..')
     
     # print what you have saved in short format
-    print(f"Saved {PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}.png in plots/ .")
+    print(f"Saved {PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{plot_variable}.png in plots/ .")
     
     #plt.show()
     plt.close()
@@ -161,6 +180,12 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     background_hist = total_hist - signal_hist # Tot. - bkg = sgn
     
     signal_to_noise_ratio = signal_hist/background_hist
+
+    # if signal_to_noise_ratio has nan values print them
+    if np.isnan(signal_to_noise_ratio).any():
+        print(f"Signal-to-noise ratio has nan values at indices: {np.argwhere(np.isnan(signal_to_noise_ratio))}")
+        signal_to_noise_ratio = np.nan_to_num(signal_to_noise_ratio, nan=0, posinf=0, neginf=0)
+        print(f"Signal-to-noise ratio has been replaced with 0 at nan values.")
     
     print(f"Number of total events: {[round(hist,0) for hist in total_hist]} and in total {round(sum(total_hist),0)} events.")
     print(f"Number of signal events: {[round(hist,0) for hist in signal_hist]}")
@@ -179,7 +204,7 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     plt.xticks(total_bin_edges[:-1]+bin_width/2, x_labels, rotation=0)
     
     plt.ylabel('(Tot. - Bkg)/Bkg')
-    plt.xlabel('MVA Output')
+    plt.xlabel(f'{plot_variable}')
 
     if PLOT_TYPE == 'prefit':
         plt.xticks(rotation=90)
@@ -187,13 +212,13 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
 
     atlasify(atlas = False)
 
-    os.chdir(PLOT_RELATIVE_FOLDER_PATH)
+    os.chdir(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
 
-    plt.savefig(f'{PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}_signal_ratio.png',dpi = 600) #
+    plt.savefig(f'{PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{plot_variable}_signal_ratio.png',dpi = 600) #
 
-    os.chdir('..')
+    os.chdir('../..')
 
-    print(f"Saved {PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}_signal_ratio.png in plots/ .")
+    print(f"Saved {PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{plot_variable}_signal_ratio.png in plots/ .")
 
     
     plt.close()
@@ -235,20 +260,20 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
     
     ax_bottom.set_ylim(0, max(signal_to_noise_ratio)*1.1)
     ax_bottom.set_ylabel('(Tot. - Bkg)/Bkg')
-    ax_bottom.set_xlabel(f'{physical_variable}')    
+    ax_bottom.set_xlabel(f'{plot_variable}')    
     
     if PLOT_TYPE == 'prefit':
         ax_bottom.set_xticklabels(x_labels, rotation=90)
         
     plt.tight_layout()
 
-    os.chdir(PLOT_RELATIVE_FOLDER_PATH)
+    os.chdir(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
 
-    plt.savefig(f'{PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}_combined.png',dpi = 600) #
+    plt.savefig(f'{PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{plot_variable}_combined.png',dpi = 600) #
 
-    print(f"Saved {PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{physical_variable}_combined.png in plots/ .")
+    print(f"Saved {PLOT_TYPE}_histogram_{DATA_FILENAME_WITHOUT_FILETYPE}_{plot_variable}_combined.png in plots/ .")
 
-    os.chdir('..')
+    os.chdir('../..')
     #plt.show()
     plt.close()
 
@@ -270,43 +295,55 @@ def plot_one_physical_variable(df, physical_variable, unit, SIGNAL, BACKGROUND, 
 
         # get total number of events in test data in the last bin
 
-        last_bin_test_events = df.loc[df[physical_variable] > bottom_edge_in_last_bin].groupby('label')['weight'].sum().to_dict()
-        last_bin_test_events['Total'] = sum(last_bin_test_events.values())
-        last_bin_test_events['Total bkg'] = last_bin_test_events['Total'] - last_bin_test_events[SIGNAL[0]]
-        last_bin_test_events['Sgn/Bkg'] = last_bin_test_events[SIGNAL[0]]/last_bin_test_events['Total bkg']
+        # check if there are any events in the last bin 
+        if len(df.loc[df[plot_variable] > bottom_edge_in_last_bin]) == 0:
+            print(f"No events in the last bin {bottom_bin_string}.")
+            last_bin_test_events = {key: 0 for key in total_test_events.keys()}
+            last_bin_test_events['Sgn/Bkg'] = 0
+        else:
+            print(f"Events in the last bin {bottom_bin_string}.")
+            last_bin_test_events = df.loc[df[plot_variable] > bottom_edge_in_last_bin].groupby('label')['weight'].sum().to_dict()
+            last_bin_test_events['Total'] = sum(last_bin_test_events.values())
+            last_bin_test_events['Total bkg'] = last_bin_test_events['Total'] - last_bin_test_events[SIGNAL[0]]
+            last_bin_test_events['Sgn/Bkg'] = last_bin_test_events[SIGNAL[0]]/last_bin_test_events['Total bkg']
             
 
         # Creating DataFrame to save 
         df_tmp = pd.DataFrame({
             'Test Events': total_test_events,
-            f'{physical_variable}:{bottom_bin_string}': last_bin_test_events
+            f'{plot_variable}:{bottom_bin_string}': last_bin_test_events
         })
+        
+        # if column starts with MVAOutput_ remove it
+        if plot_variable.startswith('MVAOutput_'):
+            df_tmp.columns = df_tmp.columns.str.replace('MVAOutput_', '') 
+        
         df_tmp = df_tmp.round(decimals=1)
         # save to pickle
-        os.chdir(PLOT_RELATIVE_FOLDER_PATH)
+        os.chdir(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
+
+        table5_name = f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}'
         # if file exists
-        if os.path.exists(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl'):
-            df_tmp_existing = pd.read_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+        if os.path.exists(table5_name+'.pkl'):
+            df_tmp_existing = pd.read_pickle(table5_name+'.pkl')
             df_tmp = pd.concat([df_tmp_existing, df_tmp], axis=1)
             #df_tmp.round(decimals=1)
             df_tmp = df_tmp.loc[:,~df_tmp.columns.duplicated()]
-            df_tmp.to_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+            df_tmp.to_pickle(table5_name+'.pkl')
             print("File exists, adding to it.")
             # Save to csv and save over it if existing 
-            df_tmp.to_csv(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.csv')
+            df_tmp.to_csv(table5_name+'.csv')
         else:
             # delete csv and pickle if already exists
-            if os.path.exists(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.csv'):
-                os.remove(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.csv')
-            
-            if os.path.exists(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl'):
-                os.remove(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
-            df_tmp.to_pickle(f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+            if os.path.exists(table5_name+'.csv'):
+                os.remove(table5_name+'.csv')
+                
+            if os.path.exists(table5_name+'.pkl'):
+                os.remove(table5_name+'.pkl')
+
+            df_tmp.to_pickle(table5_name+'.pkl')
             
             print("Saved temporary pickle file.")
 
-        print(f"\n All plots for {physical_variable} done\n")
-        os.chdir('..')
-    
-        
-
+        print(f"\nAll histograms for {plot_variable} are done\n")
+        os.chdir('../..')

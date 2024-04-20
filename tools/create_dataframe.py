@@ -3,11 +3,17 @@ import uproot
 import os 
 import pickle
 
+from typing import List
 
-def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_FILENAME_WITHOUT_FILETYPE, SIGNAL_CHANNEL, BACKGROUND_CHANNEL, SELECTED_OTHER_VARIABLES, SELECTED_PHYSICAL_VARIABLES):
+def create_dataframe(DATA_RELATIVE_FOLDER_PATH: str, 
+                     DATA_FILENAME_WITHOUT_FILETYPE: str, 
+                     SIGNAL_CHANNEL: List[str], 
+                     BACKGROUND_CHANNEL : List[str],
+                     SELECTED_OTHER_VARIABLES : List[str], 
+                     SELECTED_PHYSICAL_VARIABLES : List[str]
+                     ) -> None:
 
     os.chdir(DATA_RELATIVE_FOLDER_PATH)
-    print(f"Current working directory: {os.getcwd()}\n")
 
     with uproot.open(f'{DATA_FILENAME_WITHOUT_FILETYPE}.root') as root_file: # context manager to automatically close the file
 
@@ -25,7 +31,8 @@ def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_FILENAME_WITHOUT_FILETYPE, 
             
     df = pd.concat(dfs) # Add all channels to a large df
 
-    # Add column and clean the channel names
+    ### CHECK HERE ###
+    # Add label trimming relevant for my naming convention for my rootfile
     df['label'] = df['label'].str.replace(';1', '').str.replace('HWW_', '') # clean the channel names for better readability
     
     df.insert(0, 'eventType', df['label'].apply(lambda x: 'Signal' if x in SIGNAL_CHANNEL else 'Background')) # add a column with the event type
@@ -55,7 +62,8 @@ def create_dataframe(DATA_RELATIVE_FOLDER_PATH, DATA_FILENAME_WITHOUT_FILETYPE, 
     # Save selected dataframe to a pickle file
     
     df_selected_channel_and_variables.to_pickle(f'{DATA_FILENAME_WITHOUT_FILETYPE}.pkl')
+
+    print(f"\nDataframe saved to {DATA_FILENAME_WITHOUT_FILETYPE}.pkl in folder {DATA_RELATIVE_FOLDER_PATH}\n")
     
     # change back to the original directory
     os.chdir('..')
-    

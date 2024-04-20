@@ -53,7 +53,3 @@ def roc_curve(df, y_true_col, y_pred_col, THRESHOLDS):
 
 ################# Weighted metrics #################
 # use if you use weighted samples when training, I do not use 
-
-
-if __name__ == '__main__':
-  pass 

@@ -6,7 +6,7 @@ from typing import List
 
 # Assuming that eventweight has name weigth and channel has name label and eventType (bkg or signal) has name eventType
 
-def pre_process_data(df,
+def pre_process_data(df: pd.DataFrame,
                      TRAIN_DATA_SIZE: float,
                      RANDOM_SEED: int,
                      EXPERIMENT_ID: str,
@@ -16,12 +16,12 @@ def pre_process_data(df,
                      CLASS_WEIGHT: str,
                      SIGNAL_CHANNEL: List[str],
                      BACKGROUND_CHANNEL: List[str]
-    ) -> None:
+                    ) -> None:
 
     print(f"You have chosen class weight: {CLASS_WEIGHT}.")
 
-    """# comment out if needed, this takes time to run
-    
+    # comment out if needed, this takes time to run
+    """
     # check for nan values in data
 
     print(f"\nFound {df.isnull().sum().sum()} NaN values in MC Samples\n") 
@@ -152,10 +152,7 @@ def pre_process_data(df,
         df = pd.concat([df_sgn] + dfs_bkg)
 
         df_train, df_test =train_test_split(df, train_size=TRAIN_DATA_SIZE, random_state=RANDOM_SEED, shuffle=True, stratify=df['label']) 
-
-
-        
-        
+   
     else:
         raise ValueError("CLASS_WEIGHT must be one of 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'")
     
@@ -163,8 +160,6 @@ def pre_process_data(df,
     ###### BELOW CALCULATIONS IS ONLY TO PRINT OUT THE DATAFRAME STATISTICS ######
     ##############################################################################
     
-
-
     def calculate_dataframe_statistics(df, signal_channel = SIGNAL_CHANNEL, background_channel = BACKGROUND_CHANNEL):
         num_MCSamples_tot = df.shape[0]
         num_signal_MCSamples_tot = df[df['label'] == signal_channel[0]].shape[0]
@@ -205,8 +200,6 @@ def pre_process_data(df,
             'Tot.': 1
         }
 
-        
-        
         return statistics_MC, statistics_MC_ratio, statistics_Events, statistics_Events_ratio
     
     # Assume df, df_train, df_test are already defined
@@ -233,7 +226,6 @@ def pre_process_data(df,
         'Total_ratio': stats_total_Events_ratio
     })
 
-
     # Calculate signal/bkg ratio for each variable
     signal_row_events = df_statistics_Events.loc[f'Signal ({SIGNAL_CHANNEL[0]})'].to_dict()
     tot_bkg_row_events = df_statistics_Events.loc['Tot. Bkg'].to_dict()    
@@ -254,7 +246,6 @@ def pre_process_data(df,
     df_statistics_MC['Test_ratio'] = df_statistics_MC['Test_ratio'].map('{:.1%}'.format)
     df_statistics_MC['Total_ratio'] = df_statistics_MC['Total_ratio'].map('{:.1%}'.format)
 
-    
     df_statistics_MC.loc['Signal/Bkg'] = signal_bkg_ratio_MC
 
     df_statistics_Events['Train_num'] = df_statistics_Events['Train_num'].map('{:,.1f}'.format)
@@ -274,17 +265,9 @@ def pre_process_data(df,
     print(f"\nEvents statistics\n")
     print(df_statistics_Events)
 
-
     # save the dataframes to pickle files
     os.chdir(DATA_RELATIVE_FOLDER_PATH)
     os.makedirs(EXPERIMENT_ID, exist_ok=True)
     df_train.to_pickle(f'{EXPERIMENT_ID}/{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASS_WEIGHT}_train.pkl')
     df_test.to_pickle(f'{EXPERIMENT_ID}/{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASS_WEIGHT}_test.pkl')
-    os.chdir('../..')
-
-
-
-
-    
-    
-
+    os.chdir('..')
