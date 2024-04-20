@@ -113,7 +113,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     
     # plot all models in all folds
     for model in model_names:     
-        create_pretty_histograms(df_test, model, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS,K_FOLD,EXPERIMENT_ID)
+        create_pretty_histograms(df_test, model, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS,K_FOLD,EXPERIMENT_ID,CLASSIFICATION_TYPE)
 
     ######################################### ML metric PLOTS #########################################
 
@@ -181,9 +181,9 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         
         os.chdir(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
 
-        plt.savefig(f'{PLOT_TYPE}_metricsscorecard_{DATA_FILENAME_WITHOUT_FILETYPE}_{model_name}_fold{K_FOLD}.png',dpi = 600) #
+        plt.savefig(f'{PLOT_TYPE}_metricsscorecard_{DATA_FILENAME_WITHOUT_FILETYPE}_{model_name}.png',dpi = 600) #
 
-        print(f"Saved {PLOT_TYPE}_metricsscorecard_{DATA_FILENAME_WITHOUT_FILETYPE}_{model_name}_fold{K_FOLD}.png in plots/ .")
+        print(f"Saved {PLOT_TYPE}_metricsscorecard_{DATA_FILENAME_WITHOUT_FILETYPE}_{model_name}.png in plots/ .")
 
         os.chdir('../..')
 
@@ -226,9 +226,9 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     plt.legend()
     os.chdir(PLOT_RELATIVE_FOLDER_PATH + EXPERIMENT_ID)
 
-    plt.savefig(f'{PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{EXPERIMENT_ID}.png',dpi = 600) #
+    plt.savefig(f'{PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASSIFICATION_TYPE}.png',dpi = 600) #
 
-    print(f"Saved {PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{EXPERIMENT_ID}.png in plots/ .")
+    print(f"Saved {PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASSIFICATION_TYPE}.png in plots/ .")
 
     os.chdir('../..')
 
