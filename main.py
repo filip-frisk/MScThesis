@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240420_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240420_III' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -30,17 +30,43 @@ CLASS_WEIGHT = 'MC_EACH_bkg_as_sgn' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn
 
 CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
 
-K_FOLD = 2 # number of k-folds for cross-validation
+K_FOLD = 1 # number of k-folds for cross-validation
 
+# Relevant classifiers in sklearn
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
+#from sklearn.ensemble import AdaBoostClassifier
+#from sklearn.ensemble import BaggingClassifier
+#from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT
 
+from sklearn.linear_model import LogisticRegression
+#from sklearn.linear_model import SGDClassifier
+
+from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN
+#from sklearn.neighbors import RadiusNeighborsClassifier
+
+from sklearn.svm import LinearSVC #SVC is too memory consuming # in TMVA SVM
+
+from sklearn.naive_bayes import GaussianNB
+
+from sklearn.tree import DecisionTreeClassifier
+
+from xgboost import XGBClassifier
+
+
+# Minimized due to memory constraints
 MODELS = [
-    RandomForestClassifier(),
-    LogisticRegression()
+    XGBClassifier(n_estimators=100, max_depth=3),
+    RandomForestClassifier(n_estimators=50, n_jobs=2),
+    HistGradientBoostingClassifier(max_iter=100),
+    LogisticRegression(max_iter=500),
+    KNeighborsClassifier(n_jobs=2),
+    LinearSVC(dual=False, max_iter=1000),
+    GaussianNB(),
+    DecisionTreeClassifier(max_depth=5)
 ]
 
-from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
 BENCHMARK_MODEL = MLPClassifier(hidden_layer_sizes = (128,64,16,),
                                 activation='relu',batch_size=2048,
@@ -50,32 +76,7 @@ BENCHMARK_MODEL = MLPClassifier(hidden_layer_sizes = (128,64,16,),
                                 beta_2=0.9,
                                 max_iter=1000) # no dropout used 
 
-"""
-# ALL MODELS in sklearn
-from sklearn.utils import all_estimators
-
-estimators = all_estimators()
-
-MODELS = []
-
-# Categorical Naive Bayes since raise ValueError("Negative values in data passed to %s" % whom)
-# MLPClassifier since benchmark model
-# Other since need requires parameters to instantiate.
-# DummyClassifier dummy variable 
-# GaussianProcessClassifier and Label Propagation creates enormous matrices 
-
-# 8 GB = 8 × 1024³ bytes = 8,589,934,592 bytes.
-# 8,589,934,592 bytes / 8 bytes = 1,073,741,824 elements
-# zsh: bus error  python3 main.py
-
-except_models = ['LabelPropagation','GaussianProcessClassifier','ExtraTreeClassifier','CategoricalNB','ComplementNB','DummyClassifier', 'MLPClassifier','ClassifierChain','GridSearchCV','MultiOutputClassifier','OneVsRestClassifier','Pipeline','RFE','RFECV','RandomizedSearchCV','SelfTrainingClassifier','StackingClassifier','VotingClassifier']
-for name, EstimatorClass in estimators:
-    if hasattr(EstimatorClass, 'predict_proba') and name not in except_models:
-        # Instantiating with default parameters
-        obj = EstimatorClass()
-        MODELS.append(obj)
-
-"""          
+    
 MODELS.append(BENCHMARK_MODEL)
 
 ######################################################################################################################################
@@ -107,7 +108,7 @@ with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
-#"""
+"""
 from tools.create_pretty_histograms import create_pretty_histograms    
 overflow_underflow_percentile = {'lower_bound': 5, 'upper_bound': 95} # ex 1% and 99% percentile, all data outside this range will be added to the last and first bin respectively
 bins = 7
@@ -133,11 +134,11 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
                                K_FOLD,
                                EXPERIMENT_ID)  
     
-#"""
+"""
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-"""
+#"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -155,10 +156,10 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-"""
+#"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
-"""
+#"""
 from tools.fit_models import fit_models
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -170,7 +171,7 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
         SELECTED_PHYSICAL_VARIABLES,
         MODELS_RELATIVE_FOLDER_PATH,
         CLASSIFICATION_TYPE)
-"""
+#"""
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 
