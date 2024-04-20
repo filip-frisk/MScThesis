@@ -28,7 +28,7 @@ CLASS_WEIGHT = 'MC_EACH_bkg_as_sgn' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
-CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
+CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
 
 K_FOLD = 1 # number of k-folds for cross-validation
 
@@ -45,7 +45,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN
 #from sklearn.neighbors import RadiusNeighborsClassifier
 
-from sklearn.svm import LinearSVC #SVC is too memory consuming # in TMVA SVM
+
+from sklearn.svm import SVC # in TMVA SVM
 
 from sklearn.naive_bayes import GaussianNB
 
@@ -53,31 +54,33 @@ from sklearn.tree import DecisionTreeClassifier
 
 from xgboost import XGBClassifier
 
-
 # Minimized due to memory constraints
 MODELS = [
-    XGBClassifier(n_estimators=100, max_depth=3),
+    #XGBClassifier(n_estimators=100, max_depth=3), NEED TO FILTER LABELS 0,1,2... ValueError: Invalid classes inferred from unique values of `y`.  Expected: [0 1 2 3], got ['VBF' 'WW' 'Zjets' 'ttbar']
     RandomForestClassifier(n_estimators=50, n_jobs=2),
-    HistGradientBoostingClassifier(max_iter=100),
-    LogisticRegression(max_iter=500),
-    KNeighborsClassifier(n_jobs=2),
-    LinearSVC(dual=False, max_iter=1000),
+    HistGradientBoostingClassifier(),
+    LogisticRegression(max_iter=5000),
+    KNeighborsClassifier(),
+    SVC(max_iter=3000,probability=True), # took 35 minutes
     GaussianNB(),
     DecisionTreeClassifier(max_depth=5)
 ]
-
+# bench: 
+# https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/VBF_Vs_Background_DNN.py?ref_type=heads
+# https://gitlab.cern.ch/ahmarkho/ggffml/-/blob/master/configs/fit_1jet_multiClass.cfg?ref_type=heads
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
 BENCHMARK_MODEL = MLPClassifier(hidden_layer_sizes = (128,64,16,),
-                                activation='relu',batch_size=2048,
+                                activation='relu',
+                                batch_size=2048,
                                 solver='adam',
                                 learning_rate_init=0.001,
                                 beta_1=0.95,
                                 beta_2=0.9,
                                 max_iter=1000) # no dropout used 
-
     
 MODELS.append(BENCHMARK_MODEL)
+
 
 ######################################################################################################################################
 ############################################################### MODULES ##############################################################
@@ -100,11 +103,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-#"""
+"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-#"""
+"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -138,7 +141,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-#"""
+"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -156,7 +159,7 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-#"""
+"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
 #"""

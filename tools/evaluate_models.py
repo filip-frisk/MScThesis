@@ -226,9 +226,9 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     plt.legend()
     os.chdir(PLOT_RELATIVE_FOLDER_PATH + EXPERIMENT_ID)
 
-    plt.savefig(f'{PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}.png',dpi = 600) #
+    plt.savefig(f'{PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{EXPERIMENT_ID}.png',dpi = 600) #
 
-    print(f"Saved {PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}.png in plots/ .")
+    print(f"Saved {PLOT_TYPE}_ROC_AUC_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{EXPERIMENT_ID}.png in plots/ .")
 
     os.chdir('../..')
 

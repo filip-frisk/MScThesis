@@ -322,7 +322,7 @@ def create_pretty_histograms(df: pd.DataFrame,
         # save to pickle
         os.chdir(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
 
-        table5_name = f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}'
+        table5_name = f'{PLOT_TYPE}_table5_{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{EXPERIMENT_ID}'
         # if file exists
         if os.path.exists(table5_name+'.pkl'):
             df_tmp_existing = pd.read_pickle(table5_name+'.pkl')
