@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240420_III' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240420_IV' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -24,7 +24,7 @@ SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
 SELECTED_PHYSICAL_VARIABLES = ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # eta_l_centrality missing?
 SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV',''] # Is it really GeV? units? '' empty for unitless
 
-CLASS_WEIGHT = 'MC_EACH_bkg_as_sgn' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
+CLASS_WEIGHT = 'raw' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
@@ -45,7 +45,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN
 #from sklearn.neighbors import RadiusNeighborsClassifier
 
-
 from sklearn.svm import SVC # in TMVA SVM
 
 from sklearn.naive_bayes import GaussianNB
@@ -59,9 +58,9 @@ MODELS = [
     #XGBClassifier(n_estimators=100, max_depth=3), NEED TO FILTER LABELS 0,1,2... ValueError: Invalid classes inferred from unique values of `y`.  Expected: [0 1 2 3], got ['VBF' 'WW' 'Zjets' 'ttbar']
     RandomForestClassifier(n_estimators=50, n_jobs=2),
     HistGradientBoostingClassifier(),
-    LogisticRegression(max_iter=5000),
+    LogisticRegression(max_iter=10000),
     KNeighborsClassifier(),
-    SVC(max_iter=3000,probability=True), # took 35 minutes
+    SVC(max_iter=1000,probability=True), # took 35 minutes
     GaussianNB(),
     DecisionTreeClassifier(max_depth=5)
 ]
@@ -80,7 +79,6 @@ BENCHMARK_MODEL = MLPClassifier(hidden_layer_sizes = (128,64,16,),
                                 max_iter=1000) # no dropout used 
     
 MODELS.append(BENCHMARK_MODEL)
-
 
 ######################################################################################################################################
 ############################################################### MODULES ##############################################################
@@ -103,11 +101,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-"""
+#"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-"""
+#"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -142,7 +140,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-"""
+#"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -160,10 +158,10 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-"""
+#"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
-"""
+#"""
 from tools.fit_models import fit_models
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -175,7 +173,7 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
         SELECTED_PHYSICAL_VARIABLES,
         MODELS_RELATIVE_FOLDER_PATH,
         CLASSIFICATION_TYPE)
-"""
+#"""
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 
