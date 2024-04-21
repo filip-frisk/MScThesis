@@ -28,7 +28,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
                     ) -> None:
     
     
-    print(f"Starting evaluation for K-Fold: {K_FOLD}\n")
+    print(f"Starting evaluation for K-Fold number {K_FOLD}\n")
     
     #### Load test data ####
     os.chdir(DATA_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
@@ -37,8 +37,6 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     
     with open(TEST_DATA_FILE_PATH, 'rb') as f: #unique for each fold
         df_test = pickle.load(f)
-
-    print(f'Loaded test data for K-Fold: {K_FOLD}\n')
 
     os.chdir('../..')
 
@@ -54,7 +52,6 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         with open(MODEL_FILE_PATH, 'rb') as f:
             model = pickle.load(f)
         
-        # evaluate the model
         if CLASSIFICATION_TYPE == 'binary':
             
             if model.name == 'XGB':
@@ -64,8 +61,9 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
             
             if model.name == 'XGB':
                 df_test['eventType'] = df_test['eventType'].map({0: 'Signal',1: 'Background'})
+                df_distribution.columns = ['Signal','Background']
             
-            print(f"model classes example: {model.name} \n {df_distribution.head()}\n")
+            print(f"Model classes example: {model.name} \n {df_distribution.head()}\n")
             model_name = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.name}' # VBF-like
         
         elif CLASSIFICATION_TYPE == 'multi_class':
@@ -77,11 +75,10 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
             
             if model.name == 'XGB':
                 df_test['label'] = df_test['label'].map({0: 'VBF',1: 'WW',2: 'Zjets',3: 'ttbar'})
+                df_distribution.columns = ['Signal','Background']
             
-            print(f"model classes example: {model.name} \n {df_distribution.head()}\n")
+            print(f"Model classes example: {model.name} \n {df_distribution.head()}\n")
             model_name = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.name}' # VBF-like
-
-            #if model.name == 'XGB':
 
         else:
             raise ValueError(f"Classification type: {CLASSIFICATION_TYPE} not supported")
@@ -90,8 +87,6 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         df_test = df_test.reset_index(drop=True)
 
         if CLASSIFICATION_TYPE == 'binary':
-            print(df_test.head())
-            print(df_distribution.head())
             df_test[model_name] = df_distribution['Signal']  
                 
         elif CLASSIFICATION_TYPE == 'multi_class':
@@ -124,12 +119,12 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     PLOT_TYPE = 'postfit' # 'prefit', 'postfit'
     UNIT = ''
     OVERFLOW_UNDERFLOW_PERCENTILE = {'lower_bound': 5, 'upper_bound': 95}
-    BINS = 7
+    BINS = 14 # 13*1/14 = [0.93,1.0] last bin 
     # plot the results
     
-    SIGNAL_ENVELOPE_SCALE = 500 # easier to guess than to scale dynamically
+    SIGNAL_ENVELOPE_SCALE = 5000 # easier to guess than to scale dynamically
     NORMALIZE_WEIGHTS = False
-    print(df_test.head())
+    
     # plot all models in all folds
     for model in model_names:     
         create_pretty_histograms(df_test, model, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS,K_FOLD,EXPERIMENT_ID,CLASSIFICATION_TYPE)
@@ -238,10 +233,10 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         plt.plot(fpr, tpr, label=f'{model_name}, AUC = {AUC:.2f}')
         
     # add random classifier as comparison
-    plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', label='Random guess')
+    plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', label='Random guess, AUC = 0.5')
     
     # add perfect classifier as comparison
-    plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', lw=2, color='b', label='Perfect classifier')
+    plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', lw=2, color='b', label='Perfect classifier, AUC = 1.0')
         
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')

@@ -207,9 +207,9 @@ def create_pretty_histograms(df: pd.DataFrame,
     plt.ylabel('(Tot. - Bkg)/Bkg')
     plt.xlabel(f'{plot_variable}')
 
-    if PLOT_TYPE == 'prefit':
-        plt.xticks(rotation=90)
-        plt.tight_layout()
+    #if PLOT_TYPE == 'prefit':
+    plt.xticks(rotation=90)
+    plt.tight_layout()
 
     atlasify(atlas = False)
 

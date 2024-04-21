@@ -50,6 +50,7 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
             start_time = time.time()
             if CLASSIFICATION_TYPE == 'binary':
                 
+                # as XGB does not support string labels, we need to convert them to 0 and 1
                 if model.name == 'XGB':
                     df_train['eventType'] = df_train['eventType'].map({'Signal': 0,'Background': 1})
             

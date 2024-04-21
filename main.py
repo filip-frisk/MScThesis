@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240421_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240422_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -60,8 +60,7 @@ class NamedClassifier(BaseEstimator):
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
 from xgboost import XGBClassifier
 
-
-MLP = MLPClassifier(hidden_layer_sizes = (128,64,16,),
+MLP = MLPClassifier(hidden_layer_sizes = (128,64,64,16,),
                                     activation='relu',
                                     batch_size=2048,
                                     solver='adam',
@@ -71,17 +70,17 @@ MLP = MLPClassifier(hidden_layer_sizes = (128,64,16,),
                                     max_iter=1000) 
 
 
-XGB = NamedClassifier(XGBClassifier(),name = "XGB")
+XGB = NamedClassifier(XGBClassifier(n_estimators=100),name = "XGB")
 MLP1 = NamedClassifier(MLP,name = "MLP1")
 MLP2 = NamedClassifier(MLP,name = "MLP2")
 MLP3 = NamedClassifier(MLP,name = "MLP3")
 
 # Minimized due to memory constraints
 MODELS = [
-    #XGB,
+    XGB,
     MLP1,
-    MLP2,
-    MLP3
+    #MLP2,
+    #MLP3
 ]
 # bench: 
 # https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/VBF_Vs_Background_DNN.py?ref_type=heads
@@ -112,11 +111,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-"""
+#"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-"""
+#"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
