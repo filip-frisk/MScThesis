@@ -46,24 +46,36 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
 
         # fit the models
         for model in MODELS:
-            print(f"Training started for fitting model: {model.__class__.__name__}\n")
+            print(f"Training started for fitting model: {model.name}\n")
             start_time = time.time()
             if CLASSIFICATION_TYPE == 'binary':
+                
+                if model.name == 'XGB':
+                    df_train['eventType'] = df_train['eventType'].map({'Signal': 0,'Background': 1})
             
                 model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
+
+                if model.name == 'XGB':
+                    df_train['eventType'] = df_train['eventType'].map({0: 'Signal',1: 'Background'})
                 
             elif CLASSIFICATION_TYPE == 'multi_class':
 
+                if model.name == 'XGB':
+                    df_train['label'] = df_train['label'].map({'VBF': 0,'WW': 1,'Zjets': 2,'ttbar': 3})                
+                    
                 model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['label']) # predict: label  
+
+                if model.name == 'XGB':
+                    df_train['label'] = df_train['label'].map({0: 'VBF',1: 'WW',2: 'Zjets',3: 'ttbar'})
             
             else:
                 raise ValueError(f"CLASSIFICATION_TYPE: {CLASSIFICATION_TYPE} not supported. Choose 'binary' or'multi-class' ")
             
             end_time = time.time()
-            print(f"Training ended for fitting model: {model.__class__.__name__} it took {end_time-start_time:.2f} seconds \n")
+            print(f"Training ended for fitting model: {model.name} it took {end_time-start_time:.2f} seconds \n")
                 
             # save the model
-            MODEL_FILE_PATH = f'{TRAIN_DATA_FILE_PATH}_{CLASSIFICATION_TYPE}_{model.__class__.__name__}'
+            MODEL_FILE_PATH = f'{TRAIN_DATA_FILE_PATH}_{CLASSIFICATION_TYPE}_{model.name}'
             print(f"Saving model to {MODEL_FILE_PATH}.pkl\n")
             with open(MODEL_FILE_PATH+'.pkl', 'wb') as f:
                 pickle.dump(model, f)

@@ -48,22 +48,40 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     model_names = []
     
     for model in MODELS:
-        print(f"Starting evaluation for model: {model.__class__.__name__} for K-Fold:{K_FOLD}\n")
+        print(f"Starting evaluation for model: {model.name} for K-Fold:{K_FOLD}\n")
         
-        MODEL_FILE_PATH = f'{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASS_WEIGHT}_train_{CLASSIFICATION_TYPE}_{model.__class__.__name__}.pkl'
+        MODEL_FILE_PATH = f'{DATA_FILENAME_WITHOUT_FILETYPE}_fold{K_FOLD}_{CLASS_WEIGHT}_train_{CLASSIFICATION_TYPE}_{model.name}.pkl'
         with open(MODEL_FILE_PATH, 'rb') as f:
             model = pickle.load(f)
         
         # evaluate the model
         if CLASSIFICATION_TYPE == 'binary':
+            
+            if model.name == 'XGB':
+                df_test['eventType'] = df_test['eventType'].map({'Signal': 0,'Background': 1})
+                    
             df_distribution = pd.DataFrame(model.predict_proba(df_test[SELECTED_PHYSICAL_VARIABLES]), columns=model.classes_)
-            print(f"model classes example: {model.__class__.__name__} \n {df_distribution.head()}\n")
-            model_name = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.__class__.__name__}' # VBF-like
+            
+            if model.name == 'XGB':
+                df_test['eventType'] = df_test['eventType'].map({0: 'Signal',1: 'Background'})
+            
+            print(f"model classes example: {model.name} \n {df_distribution.head()}\n")
+            model_name = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.name}' # VBF-like
         
         elif CLASSIFICATION_TYPE == 'multi_class':
+
+            if model.name == 'XGB':
+                df_test['label'] = df_test['label'].map({'VBF': 0,'WW': 1,'Zjets': 2,'ttbar': 3})  
+
             df_distribution = pd.DataFrame(model.predict_proba(df_test[SELECTED_PHYSICAL_VARIABLES]), columns=model.classes_)
-            print(f"model classes example: {model.__class__.__name__} \n {df_distribution.head()}\n")
-            model_name = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.__class__.__name__}' # VBF-like
+            
+            if model.name == 'XGB':
+                df_test['label'] = df_test['label'].map({0: 'VBF',1: 'WW',2: 'Zjets',3: 'ttbar'})
+            
+            print(f"model classes example: {model.name} \n {df_distribution.head()}\n")
+            model_name = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.name}' # VBF-like
+
+            #if model.name == 'XGB':
 
         else:
             raise ValueError(f"Classification type: {CLASSIFICATION_TYPE} not supported")
@@ -72,6 +90,8 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         df_test = df_test.reset_index(drop=True)
 
         if CLASSIFICATION_TYPE == 'binary':
+            print(df_test.head())
+            print(df_distribution.head())
             df_test[model_name] = df_distribution['Signal']  
                 
         elif CLASSIFICATION_TYPE == 'multi_class':
@@ -79,12 +99,12 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         else:
             raise ValueError(f"Classification type: {CLASSIFICATION_TYPE} not supported. Choose 'binary' or'multi-class' ")
         
-        print(f"Finished evaluation for model: {model.__class__.__name__} for K-Fold:{K_FOLD}\n")
+        print(f"Finished evaluation for model: {model.name} for K-Fold:{K_FOLD}\n")
     
     ### Ensamble results in fold ###
 
     # Do not ensamble with compare with MLPClassifier
-    models_ensamble = [model_name for model_name in model_names if not model_name.endswith('MLPClassifier')]        
+    models_ensamble = [model_name for model_name in model_names if not model_name.endswith('BENCHMARK')]        
 
     # mean
     df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble'] = df_test[models_ensamble].mean(axis=1)
@@ -92,7 +112,6 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     # median
     df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble'] = df_test[models_ensamble].median(axis=1)
 
-    
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble')
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble')
 
@@ -110,7 +129,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     
     SIGNAL_ENVELOPE_SCALE = 500 # easier to guess than to scale dynamically
     NORMALIZE_WEIGHTS = False
-    
+    print(df_test.head())
     # plot all models in all folds
     for model in model_names:     
         create_pretty_histograms(df_test, model, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS,K_FOLD,EXPERIMENT_ID,CLASSIFICATION_TYPE)
@@ -207,6 +226,14 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         sorted_indices = np.argsort(fpr) # X axis fpr in ascending order to not get negative values
 
         AUC = np.trapz(tpr[sorted_indices], fpr[sorted_indices])
+
+        # Fix labels in the plot
+        if model_name.endswith('Ensamble'):
+            model_name = model_name.split('_')[-2] + " " + model_name.split('_')[-1]
+        else:
+            model_name = model_name.split('_')[-1]
+
+
 
         plt.plot(fpr, tpr, label=f'{model_name}, AUC = {AUC:.2f}')
         

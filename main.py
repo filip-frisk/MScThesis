@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240420_IV' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240421_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -33,50 +33,61 @@ CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not rele
 K_FOLD = 1 # number of k-folds for cross-validation
 
 # Relevant classifiers in sklearn
-from sklearn.ensemble import RandomForestClassifier
-#from sklearn.ensemble import AdaBoostClassifier
-#from sklearn.ensemble import BaggingClassifier
-#from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT
 
-from sklearn.linear_model import LogisticRegression
-#from sklearn.linear_model import SGDClassifier
+from sklearn.base import BaseEstimator
 
-from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN
-#from sklearn.neighbors import RadiusNeighborsClassifier
+# used to name the classifier
+class NamedClassifier(BaseEstimator):
+    def __init__(self, classifier, name=None):
+        self.classifier = classifier
+        self.name = name
+    
+    def fit(self, X, y):
+        return self.classifier.fit(X, y)
+    
+    def predict_proba(self, X):
+        return self.classifier.predict_proba(X)
+    
+    def __getattr__(self, attr):
+        # Delegate attribute access to the wrapped classifier if not defined in NamedClassifier
+        return getattr(self.classifier, attr)
 
-from sklearn.svm import SVC # in TMVA SVM
+#from sklearn.ensemble import RandomForestClassifier
+#from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT
+#from sklearn.linear_model import LogisticRegression
+#from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN
 
-from sklearn.naive_bayes import GaussianNB
-
-from sklearn.tree import DecisionTreeClassifier
-
+from sklearn.neural_network import MLPClassifier # in TMVA DNN
 from xgboost import XGBClassifier
+
+
+MLP = MLPClassifier(hidden_layer_sizes = (128,64,16,),
+                                    activation='relu',
+                                    batch_size=2048,
+                                    solver='adam',
+                                    learning_rate_init=0.001,
+                                    beta_1=0.95,
+                                    beta_2=0.9,
+                                    max_iter=1000) 
+
+
+XGB = NamedClassifier(XGBClassifier(),name = "XGB")
+MLP1 = NamedClassifier(MLP,name = "MLP1")
+MLP2 = NamedClassifier(MLP,name = "MLP2")
+MLP3 = NamedClassifier(MLP,name = "MLP3")
 
 # Minimized due to memory constraints
 MODELS = [
-    #XGBClassifier(n_estimators=100, max_depth=3), NEED TO FILTER LABELS 0,1,2... ValueError: Invalid classes inferred from unique values of `y`.  Expected: [0 1 2 3], got ['VBF' 'WW' 'Zjets' 'ttbar']
-    RandomForestClassifier(n_estimators=50, n_jobs=2),
-    HistGradientBoostingClassifier(),
-    LogisticRegression(max_iter=10000),
-    KNeighborsClassifier(),
-    SVC(max_iter=1000,probability=True), # took 35 minutes
-    GaussianNB(),
-    DecisionTreeClassifier(max_depth=5)
+    #XGB,
+    MLP1,
+    MLP2,
+    MLP3
 ]
 # bench: 
 # https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/VBF_Vs_Background_DNN.py?ref_type=heads
 # https://gitlab.cern.ch/ahmarkho/ggffml/-/blob/master/configs/fit_1jet_multiClass.cfg?ref_type=heads
-from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
-BENCHMARK_MODEL = MLPClassifier(hidden_layer_sizes = (128,64,16,),
-                                activation='relu',
-                                batch_size=2048,
-                                solver='adam',
-                                learning_rate_init=0.001,
-                                beta_1=0.95,
-                                beta_2=0.9,
-                                max_iter=1000) # no dropout used 
+BENCHMARK_MODEL = NamedClassifier(MLP,name = "BENCHMARK")
     
 MODELS.append(BENCHMARK_MODEL)
 
@@ -101,11 +112,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-#"""
+"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-#"""
+"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -140,7 +151,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-#"""
+"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -158,10 +169,10 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-#"""
+"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
-#"""
+"""
 from tools.fit_models import fit_models
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -173,7 +184,7 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
         SELECTED_PHYSICAL_VARIABLES,
         MODELS_RELATIVE_FOLDER_PATH,
         CLASSIFICATION_TYPE)
-#"""
+"""
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 
