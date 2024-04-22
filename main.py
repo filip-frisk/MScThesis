@@ -13,18 +13,22 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240422_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240422_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
 SIGNAL_CHANNEL = ['VBF']
-BACKGROUND_CHANNEL = ['WW', 'Zjets', 'ttbar'] # order in size event weight or MC samples
+BACKGROUND_CHANNEL = ['Zjets', 'ttbar','WW'] # order in size event weight or MC samples
 
 SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
-SELECTED_PHYSICAL_VARIABLES = ['DPhijj', 'mll', 'mT', 'DYjj', 'mjj', 'ptTot', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # eta_l_centrality missing?
+SELECTED_PHYSICAL_VARIABLES = ['DPhill', 'DYjj', 'mjj', 'mll', 'mT', 'ptTot','sumOfCentralitiesL','mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg (row 18)
 SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV',''] # Is it really GeV? units? '' empty for unitless
 
 CLASS_WEIGHT = 'raw' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
+
+CHANNEL_EVENT_WEIGHT = {'Zjets': 209848.92, 'WW': 10025.92, 'ttbar': 25341.35, 'VBF': 88.54} # Root 28Jan24
+
+CHANNEL_EVENT_WEIGHT_RATIO = {key: value/sum(CHANNEL_EVENT_WEIGHT.values()) for key, value in CHANNEL_EVENT_WEIGHT.items()}
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
@@ -52,14 +56,18 @@ class NamedClassifier(BaseEstimator):
         # Delegate attribute access to the wrapped classifier if not defined in NamedClassifier
         return getattr(self.classifier, attr)
 
-#from sklearn.ensemble import RandomForestClassifier
-#from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT
-#from sklearn.linear_model import LogisticRegression
-#from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC # in TMVA SVM
+#from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weight
 
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
-from xgboost import XGBClassifier
 
+# uses a sklearn wrapper class for XGBoost https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier
+from xgboost import XGBClassifier # used in https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/train_bdt.py
+# XGBoost is short for Extreme Gradient Boosting 
+# and is an efficient implementation of the stochastic gradient boosting machine learning algorithm.
 MLP = MLPClassifier(hidden_layer_sizes = (128,64,64,16,),
                                     activation='relu',
                                     batch_size=2048,
@@ -69,22 +77,36 @@ MLP = MLPClassifier(hidden_layer_sizes = (128,64,64,16,),
                                     beta_2=0.9,
                                     max_iter=1000) 
 
+# scale_pos_weight 
+# https://stats.stackexchange.com/questions/243207/what-is-the-proper-usage-of-scale-pos-weight-in-xgboost-for-imbalanced-datasets 
+# https://datascience.stackexchange.com/questions/16342/unbalanced-multiclass-data-with-xgboost
 
-XGB = NamedClassifier(XGBClassifier(n_estimators=100),name = "XGB")
-MLP1 = NamedClassifier(MLP,name = "MLP1")
-MLP2 = NamedClassifier(MLP,name = "MLP2")
-MLP3 = NamedClassifier(MLP,name = "MLP3")
+binary_scale_pos_weight = (sum(CHANNEL_EVENT_WEIGHT.values()) - CHANNEL_EVENT_WEIGHT['VBF']) / CHANNEL_EVENT_WEIGHT['VBF']
+print(CHANNEL_EVENT_WEIGHT.values())
+print(f"scale_pos_weight: {binary_scale_pos_weight}")
+XGB = NamedClassifier(XGBClassifier(n_estimators=100,scale_pos_weight = binary_scale_pos_weight),name = "XGB") # Benjamin uses learning_rate and max_depth
+
+#MLP1 = NamedClassifier(MLP,name = "MLP1")
+#MLP2 = NamedClassifier(MLP,name = "MLP2")
+#MLP3 = NamedClassifier(MLP,name = "MLP3")
+
+RF = NamedClassifier(RandomForestClassifier(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "RF")
+LR = NamedClassifier(LogisticRegression(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "LR")
+HGBC = NamedClassifier(HistGradientBoostingClassifier(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "HGBC")
+SVC = NamedClassifier(SVC(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "SVC")
 
 # Minimized due to memory constraints
 MODELS = [
     XGB,
-    MLP1,
+    RF,
+    LR,
+    HGBC,
+    SVC
     #MLP2,
     #MLP3
 ]
 # bench: 
-# https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/VBF_Vs_Background_DNN.py?ref_type=heads
-# https://gitlab.cern.ch/ahmarkho/ggffml/-/blob/master/configs/fit_1jet_multiClass.cfg?ref_type=heads
+# https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg 
 
 BENCHMARK_MODEL = NamedClassifier(MLP,name = "BENCHMARK")
     
@@ -111,11 +133,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-#"""
+"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-#"""
+"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -187,7 +209,7 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 
-#"""
+"""
 from tools.evaluate_models import evaluate_models
 
 for k_fold in range(1, K_FOLD+1):
@@ -206,7 +228,7 @@ for k_fold in range(1, K_FOLD+1):
         CUT,
         SELECTED_PHYSICAL_VARIABLES
     )
-#"""
+"""
 
 ###################################################### CURRENT DATASET: 28Jan24 ########################################################
 """ In root file ggFVBF2jet-SF-28Jan24.root, you have the following:
@@ -237,14 +259,14 @@ ALL_PHYSICAL_VARIABLES_UNITS = [
 Trees/channels:
 * Tree/channel: HWW_Data;1, with 281,950 MC simulations and 281,950.00 total event weight.
 * Tree/channel: HWW_Vgamma;1, with 38,521 MC simulations and 10,570.94 total event weight.
-* Tree/channel: HWW_Zjets;1, with 4,505,202 MC simulations and 209,848.92 total event weight.
+* Tree/channel: HWW_Zjets;1, with 4,505,202 MC simulations and 209,848.92 total event weight. (***)
 * Tree/channel: HWW_OtherVV;1, with 1,403,847 MC simulations and 5,196.99 total event weight.
-* Tree/channel: HWW_WW;1, with 1,384,730 MC simulations and 10,025.92 total event weight.
+* Tree/channel: HWW_WW;1, with 1,384,730 MC simulations and 10,025.92 total event weight. (***)
 * Tree/channel: HWW_singletop;1, with 243,573 MC simulations and 3,190.52 total event weight.
-* Tree/channel: HWW_ttbar;1, with 682,008 MC simulations and 25,341.35 total event weight.
+* Tree/channel: HWW_ttbar;1, with 682,008 MC simulations and 25,341.35 total event weight. (***)
 * Tree/channel: HWW_triboson;1, with 30,387 MC simulations and 140.99 total event weight.
 * Tree/channel: HWW_ggF;1, with 35,129 MC simulations and 271.94 total event weight.
 * Tree/channel: HWW_htt;1, with 49,051 MC simulations and 74.44 total event weight.
-* Tree/channel: HWW_VBF;1, with 105,641 MC simulations and 88.54 total event weight.
+* Tree/channel: HWW_VBF;1, with 105,641 MC simulations and 88.54 total event weight. (***)
 * Tree/channel: HWW_VH;1, with 120,704 MC simulations and 86.82 total event weight.
 """

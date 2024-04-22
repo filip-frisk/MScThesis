@@ -119,7 +119,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     PLOT_TYPE = 'postfit' # 'prefit', 'postfit'
     UNIT = ''
     OVERFLOW_UNDERFLOW_PERCENTILE = {'lower_bound': 5, 'upper_bound': 95}
-    BINS = 14 # 13*1/14 = [0.93,1.0] last bin 
+    BINS = 10 # 9*1/10 = [0.90,1.0] last bin with 90% confidence 
     # plot the results
     
     SIGNAL_ENVELOPE_SCALE = 5000 # easier to guess than to scale dynamically

@@ -23,7 +23,7 @@ Run the following commands in your terminal:
 ```console
 python3 -m venv venv-filipsframework
 source venv-filipsframework/bin/activate
-pip3 install pandas numpy atlasify matplotlib uproot scikit-learn
+pip3 install pandas numpy atlasify matplotlib uproot scikit-learn tensorflow
 mkdir data models plots
 ```
 This repository assumes that you arrive with an already cutted MC sample .root file with HWWAnalysisCode, add it to data/ folder just created.
