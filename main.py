@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240422_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240423_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -26,21 +26,31 @@ SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?e
 
 CLASS_WEIGHT = 'raw' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
 
+########################################################## Temporary/Class weights ##########################################################
+"""
 CHANNEL_EVENT_WEIGHT = {'Zjets': 209848.92, 'WW': 10025.92, 'ttbar': 25341.35, 'VBF': 88.54} # Root 28Jan24
-
 CHANNEL_EVENT_WEIGHT_RATIO = {key: value/sum(CHANNEL_EVENT_WEIGHT.values()) for key, value in CHANNEL_EVENT_WEIGHT.items()}
+
+print("Class weights:\n")
+print(f"Labels: {CHANNEL_EVENT_WEIGHT.values()}")
+print(f"Labels ratio:{CHANNEL_EVENT_WEIGHT_RATIO}")
+
+binary_scale_pos_weight = (sum(CHANNEL_EVENT_WEIGHT.values()) - CHANNEL_EVENT_WEIGHT['VBF']) / CHANNEL_EVENT_WEIGHT['VBF']
+print(f"Background / Signal: {binary_scale_pos_weight}")
+
+CHANNEL_EVENT_WEIGHT = {'Signal': 88.54, 'Background': 209848.92+10025.92+25341.35} # Root 28Jan24
+CHANNEL_EVENT_WEIGHT_RATIO = {key: value/sum(CHANNEL_EVENT_WEIGHT.values()) for key, value in CHANNEL_EVENT_WEIGHT.items()}
+print(f"EventType: {CHANNEL_EVENT_WEIGHT.values()}")
+print(f"EventType ratio:{CHANNEL_EVENT_WEIGHT_RATIO}")
+"""
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
 CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
-
 K_FOLD = 1 # number of k-folds for cross-validation
 
-# Relevant classifiers in sklearn
-
+#Name Wrapper for sklearn based models
 from sklearn.base import BaseEstimator
-
-# used to name the classifier
 class NamedClassifier(BaseEstimator):
     def __init__(self, classifier, name=None):
         self.classifier = classifier
@@ -56,61 +66,80 @@ class NamedClassifier(BaseEstimator):
         # Delegate attribute access to the wrapped classifier if not defined in NamedClassifier
         return getattr(self.classifier, attr)
 
+########################### SKLEARN MODEL IMPORTS ###########################
+
+# Wrapper helper class used to name the classifier for sklearn 
+
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT
+from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT / class_weights need integers
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC # in TMVA SVM
+#from sklearn.svm import SVC # in TMVA SVM
 #from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weight
+
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
+########################### SKLEARN WRAPPER MODELS ###########################
+
+#XGBoost
 # uses a sklearn wrapper class for XGBoost https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier
-from xgboost import XGBClassifier # used in https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/train_bdt.py
+from xgboost import XGBClassifier  
 # XGBoost is short for Extreme Gradient Boosting 
+# scale_pos_weight=1 / 0.0003609388
+
 # and is an efficient implementation of the stochastic gradient boosting machine learning algorithm.
-MLP = MLPClassifier(hidden_layer_sizes = (128,64,64,16,),
+
+#BalancedRandomForest 
+# From https://imbalanced-learn.org/stable/index.html
+from imblearn.ensemble import BalancedRandomForestClassifier
+from imblearn.ensemble import RUSBoostClassifier
+
+###########################  MODELS ###########################
+
+
+MLP = MLPClassifier(hidden_layer_sizes = (256,128,128,64,32,24,16,8,),
                                     activation='relu',
-                                    batch_size=2048,
+                                    batch_size=512,
                                     solver='adam',
-                                    learning_rate_init=0.001,
+                                    learning_rate_init=30,
                                     beta_1=0.95,
                                     beta_2=0.9,
                                     max_iter=1000) 
 
-# scale_pos_weight 
-# https://stats.stackexchange.com/questions/243207/what-is-the-proper-usage-of-scale-pos-weight-in-xgboost-for-imbalanced-datasets 
-# https://datascience.stackexchange.com/questions/16342/unbalanced-multiclass-data-with-xgboost
 
-binary_scale_pos_weight = (sum(CHANNEL_EVENT_WEIGHT.values()) - CHANNEL_EVENT_WEIGHT['VBF']) / CHANNEL_EVENT_WEIGHT['VBF']
-print(CHANNEL_EVENT_WEIGHT.values())
-print(f"scale_pos_weight: {binary_scale_pos_weight}")
-XGB = NamedClassifier(XGBClassifier(n_estimators=100,scale_pos_weight = binary_scale_pos_weight),name = "XGB") # Benjamin uses learning_rate and max_depth
-
+XGB = NamedClassifier(XGBClassifier(n_estimators=200, max_depth = 10, learning_rate = 0.0001),name = "XGB") # Benjamin uses learning_rate and max_depth
 #MLP1 = NamedClassifier(MLP,name = "MLP1")
 #MLP2 = NamedClassifier(MLP,name = "MLP2")
 #MLP3 = NamedClassifier(MLP,name = "MLP3")
+RF = NamedClassifier(RandomForestClassifier(),name = "RF")
+LR = NamedClassifier(LogisticRegression(),name = "LR") # class_weight='balanced'
+AdaBoost = NamedClassifier(AdaBoostClassifier(estimator = DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "AdaBoost")
+Bagging = NamedClassifier(BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "Bagging")  
+HGBC = NamedClassifier(HistGradientBoostingClassifier(),name = "HGBC")
+#SVC = NamedClassifier(SVC(probability=True),name = "SVC")class_weight='balanced'
 
-RF = NamedClassifier(RandomForestClassifier(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "RF")
-LR = NamedClassifier(LogisticRegression(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "LR")
-HGBC = NamedClassifier(HistGradientBoostingClassifier(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "HGBC")
-SVC = NamedClassifier(SVC(class_weight=CHANNEL_EVENT_WEIGHT_RATIO),name = "SVC")
+BRF = NamedClassifier(BalancedRandomForestClassifier(n_estimators=200),name = "BRF")
 
-# Minimized due to memory constraints
+RUSBC = NamedClassifier(RUSBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1),
+                                           n_estimators=200, learning_rate=1.0),name = "RUSBC")
+
 MODELS = [
     XGB,
     RF,
     LR,
+    AdaBoost,
+    Bagging,
     HGBC,
-    SVC
-    #MLP2,
-    #MLP3
+    RUSBC
 ]
 # bench: 
-# https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg 
+# see fit keras model for specifics 
 
-BENCHMARK_MODEL = NamedClassifier(MLP,name = "BENCHMARK")
-    
-MODELS.append(BENCHMARK_MODEL)
+#BENCHMARK_MODEL = NamedClassifier(MLP,name = "BENCHMARK")   
+#MODELS.append(BENCHMARK_MODEL)
 
 ######################################################################################################################################
 ############################################################### MODULES ##############################################################
@@ -193,7 +222,7 @@ for k_fold in range(1, K_FOLD+1):
 """
 ########################################################## 4. Fit/TRAINING ##########################################################
 
-"""
+#"""
 from tools.fit_models import fit_models
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -205,11 +234,11 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
         SELECTED_PHYSICAL_VARIABLES,
         MODELS_RELATIVE_FOLDER_PATH,
         CLASSIFICATION_TYPE)
-"""
+#"""
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 
-"""
+#"""
 from tools.evaluate_models import evaluate_models
 
 for k_fold in range(1, K_FOLD+1):
@@ -228,7 +257,7 @@ for k_fold in range(1, K_FOLD+1):
         CUT,
         SELECTED_PHYSICAL_VARIABLES
     )
-"""
+#"""
 
 ###################################################### CURRENT DATASET: 28Jan24 ########################################################
 """ In root file ggFVBF2jet-SF-28Jan24.root, you have the following:

@@ -96,7 +96,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         
         print(f"Finished evaluation for model: {model.name} for K-Fold:{K_FOLD}\n")
     
-    ### Ensamble results in fold ###
+    ### Ensemble Averaging results in fold ###
 
     # Do not ensamble with compare with MLPClassifier
     models_ensamble = [model_name for model_name in model_names if not model_name.endswith('BENCHMARK')]        
@@ -104,8 +104,18 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     # mean
     df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble'] = df_test[models_ensamble].mean(axis=1)
 
-    # median
+    # Sample Weighted Mean
+    df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_SampleWeightedMean_Ensamble'] = df_test[models_ensamble].apply(lambda x: np.average(x, weights=df_test['weight']), axis=1)
+
+    # Class Weighted Mean
+    
+    # Median
     df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble'] = df_test[models_ensamble].median(axis=1)
+
+    # Maximum
+    df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Max_Ensamble'] = df_test[models_ensamble].max(axis=1)
+
+    
 
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble')
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble')
@@ -119,7 +129,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     PLOT_TYPE = 'postfit' # 'prefit', 'postfit'
     UNIT = ''
     OVERFLOW_UNDERFLOW_PERCENTILE = {'lower_bound': 5, 'upper_bound': 95}
-    BINS = 10 # 9*1/10 = [0.90,1.0] last bin with 90% confidence 
+    BINS = 10 # 9*1/10 = [0.90,1.0] last bin with 90% confidence  
     # plot the results
     
     SIGNAL_ENVELOPE_SCALE = 5000 # easier to guess than to scale dynamically
@@ -138,7 +148,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
 
     from tools.metrics import predict_threshold,confusion_matrix,precision,recall,f1_score,accuracy,false_alarm_rate,specificity
         
-    THRESHOLD = 0.5
+    THRESHOLD = (BINS-1)* 1/BINS # last bin with 90% confidence
     
     for model_name in model_names:
         MVAOutput = model_name
@@ -160,7 +170,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         fig, (ax_top, ax_bottom) = plt.subplots(2, 1, figsize=(8,6), height_ratios = [5, 1])
         cax = ax_top.matshow(confusion_matrix_values, cmap='cool')
 
-        ax_top.title.set_text(f'ML Metrics Score card on {df_test_ML_Metrics.shape[0]} MC samples with {THRESHOLD*100:.0f}% as the signal threshold \n') # not weighted resutslts 
+        ax_top.title.set_text(f'ML Metrics Score card" \n {df_test_ML_Metrics.shape[0]:.0f} MC samples \n Threshold: {THRESHOLD*100:.0f}%') # not weighted resutslts 
 
         fig.colorbar(cax)
     
@@ -187,7 +197,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
 
         # Add metrics to the bottom plot
         ax_bottom.axis('off')
-        ax_bottom.text(0.5, 0.75, f"Metrics:\n Precision: TP/(TP+FP) = {round(MVAOutput_precision,2)} \n Recall: TP/(TP+FN) = {round(MVAOutput_recall,2)}\n F1 Score: Harmonic_mean(Precision,Recall) = {round(MVAOutput_f1_score,2)} \n Accuracy: (TP+TN)/(TP+FP+FN+TN)  = {round(MVAOutput_accuracy,2)}\n Specificity: TN/(TN+FP) = {round(MVAOutput_specificity,2)}\n False Alarm Rate: FP/(FP+TN) = {round(MVAOutput_false_alarm_rate,2)} ", ha='center', va='center', color='black')
+        ax_bottom.text(0.5, 0.75, f"Metrics:\n Precision: TP/(TP+FP) = {round(MVAOutput_precision,2)} \n True Positive Rate/Signal efficiency: TP/(TP+FN) = {round(MVAOutput_recall,2)}\n F1 Score: Harmonic_mean(Precision,Recall) = {round(MVAOutput_f1_score,2)} \n Accuracy: (TP+TN)/(TP+FP+FN+TN)  = {round(MVAOutput_accuracy,2)}\n Specificity: TN/(TN+FP) = {round(MVAOutput_specificity,2)}\n False Positive Rate/Background Efficiency: FP/(FP+TN) = {round(MVAOutput_false_alarm_rate,2)} ", ha='center', va='center', color='black')
         
         # tight layout    
         plt.subplots_adjust(wspace=0, hspace=0)
@@ -238,8 +248,8 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     # add perfect classifier as comparison
     plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', lw=2, color='b', label='Perfect classifier, AUC = 1.0')
         
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate/Background Efficiency')
+    plt.ylabel('True Positive Rate/Signal Efficiency')
         
     # add legend above the plot window
 

@@ -259,7 +259,10 @@ def create_pretty_histograms(df: pd.DataFrame,
         ax_bottom_second_y_axis.text(total_bin_edges[i]+bin_width/2, signal_hist[i]+0.3, f"{round((signal_to_noise_ratio[i]),1)}/{round((signal_hist[i]),1)}", ha='center', va='bottom')
     ax_bottom_second_y_axis.set_ylabel('Signal events')    
     
-    ax_bottom.set_ylim(0, max(signal_to_noise_ratio)*1.1)
+    try:
+        ax_bottom.set_ylim(0, max(signal_to_noise_ratio)*1.1)
+    except ValueError:
+        ax_bottom.set_ylim(0,2)
     ax_bottom.set_ylabel('(Tot. - Bkg)/Bkg')
     ax_bottom.set_xlabel(f'{plot_variable}')    
     

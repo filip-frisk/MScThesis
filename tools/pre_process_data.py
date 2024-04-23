@@ -257,8 +257,6 @@ def pre_process_data(df: pd.DataFrame,
 
     df_statistics_Events.loc['Signal/Bkg'] = signal_bkg_ratio_events
 
-    print(f"You have chosen class weight: {CLASS_WEIGHT}.")
-
     print(f"\nMC Samples statistics\n")
     print(df_statistics_MC)
 

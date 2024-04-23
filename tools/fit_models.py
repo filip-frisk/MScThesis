@@ -53,7 +53,7 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
                 # as XGB does not support string labels, we need to convert them to 0 and 1
                 if model.name == 'XGB':
                     df_train['eventType'] = df_train['eventType'].map({'Signal': 0,'Background': 1})
-            
+                
                 model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
 
                 if model.name == 'XGB':

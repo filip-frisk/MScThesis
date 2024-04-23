@@ -4,21 +4,20 @@ from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 
 
-
+##################################################################################################################################
 ########################################################## ARCHITECTURE ##########################################################
-
+##################################################################################################################################
 
 CLASSIFICATION_TYPE = 'multi_class' # 'binary' or 'multi_class
 SIGNAL_CHANNEL = ['VBF']
 BACKGROUND_CHANNEL = ['Zjets', 'ttbar','WW'] # order in size event weight or MC samples
-SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
 SELECTED_PHYSICAL_VARIABLES = ['DPhill', 'DYjj', 'mjj', 'mll', 'mT', 'ptTot','sumOfCentralitiesL','mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg (row 18)
 
 # Reimplemented 
 # Without custom callback Z0Callback
-# Binary: https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg
-# Multi-class: https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/trainMultiClass.cfg
-# BachNormalization is not used but used in for example https://gitlab.cern.ch/ahmarkho/ggffml/-/blob/master/configs/fit_1jet_multiClass.cfg?ref_type=heads
+# Binary 2jSF: https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg
+# Multi-class 2jSF: https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/trainMultiClass.cfg
+# For 2jDF see images from Ahmed 
 
 
 if CLASSIFICATION_TYPE == 'binary':
@@ -94,6 +93,15 @@ model.compile(optimizer=optimizer, loss='log_cosh', metrics=[metric])
 # Print the model summary
 model.summary()
 
+##################################################################################################################################
+########################################################## Train #################################################################
+##################################################################################################################################
 
-########################################################## ARCHITECTURE ##########################################################
+
+# Save the model
+# As of now, Keras models are pickle-able. But we still recommend using model.save() to save model to disk.
+# Models saved with model.save() will be compatible with future versions of Keras and can also be exported to other platforms and implementations
+
+# Can't pickle weakref comes because Deep Learning models are too large and pickle only used for storing small models
+# Use this : HDF5 used for storing large data
 
