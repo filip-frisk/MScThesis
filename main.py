@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240423_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240423_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -46,7 +46,7 @@ print(f"EventType ratio:{CHANNEL_EVENT_WEIGHT_RATIO}")
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
-CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
+CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
 K_FOLD = 1 # number of k-folds for cross-validation
 
 #Name Wrapper for sklearn based models
@@ -73,8 +73,8 @@ class NamedClassifier(BaseEstimator):
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT / class_weights need integers
 from sklearn.linear_model import LogisticRegression
-#from sklearn.svm import SVC # in TMVA SVM
-#from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weight
+from sklearn.svm import SVC # in TMVA SVM
+from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weight
 
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -88,8 +88,6 @@ from sklearn.neural_network import MLPClassifier # in TMVA DNN
 # uses a sklearn wrapper class for XGBoost https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier
 from xgboost import XGBClassifier  
 # XGBoost is short for Extreme Gradient Boosting 
-# scale_pos_weight=1 / 0.0003609388
-
 # and is an efficient implementation of the stochastic gradient boosting machine learning algorithm.
 
 #BalancedRandomForest 
@@ -99,30 +97,18 @@ from imblearn.ensemble import RUSBoostClassifier
 
 ###########################  MODELS ###########################
 
-
-MLP = MLPClassifier(hidden_layer_sizes = (256,128,128,64,32,24,16,8,),
-                                    activation='relu',
-                                    batch_size=512,
-                                    solver='adam',
-                                    learning_rate_init=30,
-                                    beta_1=0.95,
-                                    beta_2=0.9,
-                                    max_iter=1000) 
-
-
-XGB = NamedClassifier(XGBClassifier(n_estimators=200, max_depth = 10, learning_rate = 0.0001),name = "XGB") # Benjamin uses learning_rate and max_depth
-#MLP1 = NamedClassifier(MLP,name = "MLP1")
-#MLP2 = NamedClassifier(MLP,name = "MLP2")
-#MLP3 = NamedClassifier(MLP,name = "MLP3")
+MLP = NamedClassifier(MLPClassifier(),name = "MLP")
 RF = NamedClassifier(RandomForestClassifier(),name = "RF")
-LR = NamedClassifier(LogisticRegression(),name = "LR") # class_weight='balanced'
+LR = NamedClassifier(LogisticRegression(max_iter = 1000, class_weight='balanced'),name = "LR") # 
 AdaBoost = NamedClassifier(AdaBoostClassifier(estimator = DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "AdaBoost")
 Bagging = NamedClassifier(BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "Bagging")  
 HGBC = NamedClassifier(HistGradientBoostingClassifier(),name = "HGBC")
-#SVC = NamedClassifier(SVC(probability=True),name = "SVC")class_weight='balanced'
+SVC = NamedClassifier(SVC(class_weight='balanced',probability=True,max_iter = 1000),name = "SVC")
+KNN = NamedClassifier(KNeighborsClassifier(),name = "KNN")
+
+XGB = NamedClassifier(XGBClassifier(n_estimators=200, max_depth = 10, learning_rate = 0.0001,scale_pos_weight=1/0.0003609388),name = "XGB") # Benjamin uses learning_rate and max_depth
 
 BRF = NamedClassifier(BalancedRandomForestClassifier(n_estimators=200),name = "BRF")
-
 RUSBC = NamedClassifier(RUSBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1),
                                            n_estimators=200, learning_rate=1.0),name = "RUSBC")
 
@@ -133,11 +119,14 @@ MODELS = [
     AdaBoost,
     Bagging,
     HGBC,
-    RUSBC
+    SVC,
+    KNN,
+    MLP,
+    RUSBC,
+    BRF
 ]
 # bench: 
 # see fit keras model for specifics 
-
 #BENCHMARK_MODEL = NamedClassifier(MLP,name = "BENCHMARK")   
 #MODELS.append(BENCHMARK_MODEL)
 
@@ -162,11 +151,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-"""
+#"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-"""
+#"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -201,7 +190,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-"""
+#"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -219,7 +208,7 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-"""
+#"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
 #"""

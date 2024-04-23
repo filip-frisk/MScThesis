@@ -12,6 +12,15 @@ def confusion_matrix(df, y_true_col, y_pred_col):
     FN = sum((df[y_true_col] == 'Signal') & (df[y_pred_col] == 'Background'))
     return TP, TN, FP, FN
 
+def confusion_matrix_event_weighted(df, y_true_col, y_pred_col, event_weight_col): 
+    # weighted sum of TP, TN, FP, FN based on value in event_weight_col 
+
+    TP = sum(((df[y_true_col] == 'Signal') & (df[y_pred_col] == 'Signal'))*df[event_weight_col])
+    TN = sum(((df[y_true_col] == 'Background') & (df[y_pred_col] == 'Background'))*df[event_weight_col])
+    FP = sum(((df[y_true_col] == 'Background') & (df[y_pred_col] == 'Signal'))*df[event_weight_col])
+    FN = sum(((df[y_true_col] == 'Signal') & (df[y_pred_col] == 'Background'))*df[event_weight_col])
+    return TP, TN, FP, FN
+
 def predict_threshold(df,df_column, THRESHOLD):
     return df[df_column].apply(lambda x: 'Signal' if x >= THRESHOLD else 'Background')
 

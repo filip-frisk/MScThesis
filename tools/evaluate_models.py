@@ -75,7 +75,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
             
             if model.name == 'XGB':
                 df_test['label'] = df_test['label'].map({0: 'VBF',1: 'WW',2: 'Zjets',3: 'ttbar'})
-                df_distribution.columns = ['Signal','Background']
+                df_distribution.columns = ['VBF','WW','Zjets','ttbar']
             
             print(f"Model classes example: {model.name} \n {df_distribution.head()}\n")
             model_name = f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_{model.name}' # VBF-like
@@ -105,9 +105,9 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble'] = df_test[models_ensamble].mean(axis=1)
 
     # Sample Weighted Mean
-    df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_SampleWeightedMean_Ensamble'] = df_test[models_ensamble].apply(lambda x: np.average(x, weights=df_test['weight']), axis=1)
+    #df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_SampleWeightedMean_Ensamble'] = df_test[models_ensamble].apply(lambda x: np.average(x, weights=df_test['weight']), axis=1)
 
-    # Class Weighted Mean
+    # Class Weighted Mean??
     
     # Median
     df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble'] = df_test[models_ensamble].median(axis=1)
@@ -119,6 +119,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
 
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble')
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble')
+    model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Max_Ensamble')
 
     # change back to the main directory from the model directory
     os.chdir('../..')
@@ -146,7 +147,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
 
     ############### ML SCORECARD ###############
 
-    from tools.metrics import predict_threshold,confusion_matrix,precision,recall,f1_score,accuracy,false_alarm_rate,specificity
+    from tools.metrics import predict_threshold,confusion_matrix,precision,recall,f1_score,accuracy,false_alarm_rate,specificity,confusion_matrix_event_weighted
         
     THRESHOLD = (BINS-1)* 1/BINS # last bin with 90% confidence
     
@@ -161,7 +162,8 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         y_pred_col = New_MVAOutput_prediction_column
         
         # get confusion matrix 
-        TP, TN, FP, FN = confusion_matrix(df_test_ML_Metrics, y_true_col, y_pred_col)
+        #TP, TN, FP, FN = confusion_matrix(df_test_ML_Metrics, y_true_col, y_pred_col)
+        TP, TN, FP, FN = confusion_matrix_event_weighted(df_test_ML_Metrics, y_true_col, y_pred_col, 'weight')
 
         # Plotting a minimalistic confusion matrix
         confusion_matrix_values = np.array([[TP, FP], [FN, TN]])
