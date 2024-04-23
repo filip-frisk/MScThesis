@@ -46,7 +46,7 @@ print(f"EventType ratio:{CHANNEL_EVENT_WEIGHT_RATIO}")
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
-CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
+CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
 K_FOLD = 1 # number of k-folds for cross-validation
 
 #Name Wrapper for sklearn based models
@@ -97,33 +97,52 @@ from imblearn.ensemble import RUSBoostClassifier
 
 ###########################  MODELS ###########################
 
-MLP = NamedClassifier(MLPClassifier(),name = "MLP")
-RF = NamedClassifier(RandomForestClassifier(),name = "RF")
-LR = NamedClassifier(LogisticRegression(max_iter = 1000, class_weight='balanced'),name = "LR") # 
-AdaBoost = NamedClassifier(AdaBoostClassifier(estimator = DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "AdaBoost")
-Bagging = NamedClassifier(BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "Bagging")  
-HGBC = NamedClassifier(HistGradientBoostingClassifier(),name = "HGBC")
-SVC = NamedClassifier(SVC(class_weight='balanced',probability=True,max_iter = 1000),name = "SVC")
-KNN = NamedClassifier(KNeighborsClassifier(),name = "KNN")
+#MLP = NamedClassifier(MLPClassifier(),name = "MLP")
+#RF = NamedClassifier(RandomForestClassifier(),name = "RF")
+#LR = NamedClassifier(LogisticRegression(max_iter = 1000, class_weight='balanced'),name = "LR") # 
+#AdaBoost = NamedClassifier(AdaBoostClassifier(estimator = DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "AdaBoost")
+#Bagging = NamedClassifier(BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "Bagging")  
+#HGBC = NamedClassifier(HistGradientBoostingClassifier(),name = "HGBC")
+#KNN = NamedClassifier(KNeighborsClassifier(),name = "KNN")
 
-XGB = NamedClassifier(XGBClassifier(n_estimators=200, max_depth = 10, learning_rate = 0.0001,scale_pos_weight=1/0.0003609388),name = "XGB") # Benjamin uses learning_rate and max_depth
+#XGB = NamedClassifier(XGBClassifier(n_estimators=200, max_depth = 10, learning_rate = 0.0001,scale_pos_weight=1/0.0003609388),name = "XGB") # Benjamin uses learning_rate and max_depth
 
-BRF = NamedClassifier(BalancedRandomForestClassifier(n_estimators=200),name = "BRF")
-RUSBC = NamedClassifier(RUSBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1),
-                                           n_estimators=200, learning_rate=1.0),name = "RUSBC")
+#BRF = NamedClassifier(BalancedRandomForestClassifier(n_estimators=200),name = "BRF")
+#RUSBC = NamedClassifier(RUSBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200, learning_rate=1.0),name = "RUSBC")
+
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.neighbors import KNeighborsClassifier
+from joblib import Memory
+
+# Setup caching mechanism
+location = './cachedir'
+memory = Memory(location, verbose=10)
+
+# Create a pipeline with caching
+knn_pipeline = make_pipeline(
+    StandardScaler(),
+    PCA(n_components=50, svd_solver='randomized'),
+    KNeighborsClassifier(n_neighbors=20, weights='distance', algorithm='auto', n_jobs=-1),
+    memory=memory
+)
+
+KNN = NamedClassifier(knn_pipeline,name = "KNN")
+
 
 MODELS = [
-    XGB,
-    RF,
-    LR,
-    AdaBoost,
-    Bagging,
-    HGBC,
-    SVC,
+    #XGB,
+    #RF,
+    #LR,
+    #AdaBoost,
+    #Bagging,
+    #HGBC,
+    #SVC,
     KNN,
-    MLP,
-    RUSBC,
-    BRF
+    #MLP,
+    #RUSBC,
+    #BRF
 ]
 # bench: 
 # see fit keras model for specifics 
@@ -151,11 +170,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-#"""
+"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-#"""
+"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -190,7 +209,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-#"""
+"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -208,7 +227,7 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-#"""
+"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
 #"""
