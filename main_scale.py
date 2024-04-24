@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240423_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240424_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
