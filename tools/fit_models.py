@@ -38,7 +38,7 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
         # load the data
         with open(TRAIN_DATA_FILE_PATH+'.pkl', 'rb') as f:
             df_train = pickle.load(f)
-        
+            
         # change back to the main directory
         os.chdir('../..')
 

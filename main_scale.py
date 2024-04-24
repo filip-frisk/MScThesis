@@ -108,7 +108,6 @@ knn_pipeline = make_pipeline(
     KNeighborsClassifier(n_neighbors=20, weights='distance', algorithm='auto', n_jobs=-1)
 )
 
-
 ########################### SKLEARN WRAPPER MODELS ###########################
 
 #XGBoost
@@ -147,7 +146,7 @@ HGBC = NamedClassifier(hgbc_classifier,name = "HGBC")
 
 KNN = NamedClassifier(knn_pipeline,name = "KNN")
 
-XGB = NamedClassifier(xgb_classifier,name = "XGB") # Benjamin uses learning_rate and max_depth
+XGB = NamedClassifier(xgb_classifier,name = "XGB") 
 
 BRF = NamedClassifier(brf_classifier,name = "BRF")
 

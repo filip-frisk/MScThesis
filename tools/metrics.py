@@ -3,8 +3,9 @@ import pandas as pd
 
 pd.options.mode.chained_assignment = None # Weird irrelevant warning
 
-############### NEEDED FOR ALL BINARY METRICS ###############
+############### NEEDED FOR ALL METRICS ###############
 
+# to get number of MC samples 
 def confusion_matrix(df, y_true_col, y_pred_col): 
     TP = sum((df[y_true_col] == 'Signal') & (df[y_pred_col] == 'Signal'))
     TN = sum((df[y_true_col] == 'Background') & (df[y_pred_col] == 'Background'))
@@ -12,9 +13,9 @@ def confusion_matrix(df, y_true_col, y_pred_col):
     FN = sum((df[y_true_col] == 'Signal') & (df[y_pred_col] == 'Background'))
     return TP, TN, FP, FN
 
+# to get number of events in each class
 def confusion_matrix_event_weighted(df, y_true_col, y_pred_col, event_weight_col): 
     # weighted sum of TP, TN, FP, FN based on value in event_weight_col 
-
     TP = sum(((df[y_true_col] == 'Signal') & (df[y_pred_col] == 'Signal'))*df[event_weight_col])
     TN = sum(((df[y_true_col] == 'Background') & (df[y_pred_col] == 'Background'))*df[event_weight_col])
     FP = sum(((df[y_true_col] == 'Background') & (df[y_pred_col] == 'Signal'))*df[event_weight_col])

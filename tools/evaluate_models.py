@@ -162,8 +162,8 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         y_pred_col = New_MVAOutput_prediction_column
         
         # get confusion matrix 
-        #TP, TN, FP, FN = confusion_matrix(df_test_ML_Metrics, y_true_col, y_pred_col)
-        TP, TN, FP, FN = confusion_matrix_event_weighted(df_test_ML_Metrics, y_true_col, y_pred_col, 'weight')
+        TP, TN, FP, FN = confusion_matrix(df_test_ML_Metrics, y_true_col, y_pred_col)
+        #TP, TN, FP, FN = confusion_matrix_event_weighted(df_test_ML_Metrics, y_true_col, y_pred_col, 'weight')
 
         # Plotting a minimalistic confusion matrix
         confusion_matrix_values = np.array([[TP, FP], [FN, TN]])

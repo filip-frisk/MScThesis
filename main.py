@@ -110,23 +110,7 @@ from imblearn.ensemble import RUSBoostClassifier
 #BRF = NamedClassifier(BalancedRandomForestClassifier(n_estimators=200),name = "BRF")
 #RUSBC = NamedClassifier(RUSBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200, learning_rate=1.0),name = "RUSBC")
 
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.neighbors import KNeighborsClassifier
-from joblib import Memory
 
-# Setup caching mechanism
-location = './cachedir'
-memory = Memory(location, verbose=10)
-
-# Create a pipeline with caching
-knn_pipeline = make_pipeline(
-    StandardScaler(),
-    PCA(n_components=50, svd_solver='randomized'),
-    KNeighborsClassifier(n_neighbors=20, weights='distance', algorithm='auto', n_jobs=-1),
-    memory=memory
-)
 
 KNN = NamedClassifier(knn_pipeline,name = "KNN")
 
