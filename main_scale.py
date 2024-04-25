@@ -59,6 +59,16 @@ from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weig
 
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
+
+import os
+
+# numpy uses BLAS 
+# BLAS routines are optimized for performance and can take advantage of the hardware capabilities of the CPU
+# For OpenBLAS
+
+os.environ['OPENBLAS_NUM_THREADS'] = '8'
+os.environ['OPENBLAS_MAIN_FREE'] = '1'
+
 mlp_classifier = MLPClassifier(
     hidden_layer_sizes=(512, 256, 128, 64, 32, 24, 16, 8, 4, 2),
     activation='relu',       # ReLU activation function
@@ -104,7 +114,7 @@ from sklearn.neighbors import KNeighborsClassifier
 # Create a pipeline with caching
 knn_pipeline = make_pipeline(
     StandardScaler(),
-    PCA(n_components=50, svd_solver='randomized'),
+    PCA(n_components=6, svd_solver='randomized'),
     KNeighborsClassifier(n_neighbors=30, weights='distance', algorithm='auto', n_jobs=5)
 )
 
@@ -153,9 +163,9 @@ BRF = NamedClassifier(brf_classifier,name = "BRF")
 
 MODELS = [
     #MLP,
-    RF,
-    LR,
-    HGBC,
+    #RF,
+    #LR,
+    #HGBC,
     KNN,
     XGB,
     BRF
