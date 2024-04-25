@@ -139,7 +139,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     # plot all models in all folds
     for model in model_names:     
         create_pretty_histograms(df_test, model, UNIT, SIGNAL_CHANNEL , BACKGROUND_CHANNEL, CUT,DATA_FILENAME_WITHOUT_FILETYPE,OVERFLOW_UNDERFLOW_PERCENTILE,BINS,PLOT_RELATIVE_FOLDER_PATH, PLOT_TYPE,SIGNAL_ENVELOPE_SCALE,NORMALIZE_WEIGHTS,K_FOLD,EXPERIMENT_ID,CLASSIFICATION_TYPE)
-
+        
     ######################################### ML metric PLOTS #########################################
 
     # create new compact dataframe for ROC curve
@@ -172,7 +172,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         fig, (ax_top, ax_bottom) = plt.subplots(2, 1, figsize=(8,6), height_ratios = [5, 1])
         cax = ax_top.matshow(confusion_matrix_values, cmap='cool')
 
-        ax_top.title.set_text(f'ML Metrics Score card" \n {df_test_ML_Metrics.shape[0]:.0f} MC samples \n Threshold: {THRESHOLD*100:.0f}%') # not weighted resutslts 
+        ax_top.title.set_text(f'{df_test_ML_Metrics.shape[0]:.0f} MC samples \n Threshold: {THRESHOLD*100:.0f}%') # not weighted resutslts 
 
         fig.colorbar(cax)
     
@@ -182,7 +182,19 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         # Add xlabel on top
         ax_top.xaxis.set_label_position('top')
         ax_top.set_xlabel('Actual',weight = 'bold')
-        ax_top.set_ylabel(f'Predicted by {model_name}',weight = 'bold')
+
+        # plot_variable looks like: 
+        # "MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble" OR
+        #     0        1     2           3                4     5
+        # MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_model
+        #    0       1     2           3                 4     
+        parts = model_name.split("_")
+        try:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
+        except IndexError:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+
+        ax_top.set_ylabel(f'Predicted by {clean_label}',weight = 'bold')
             
         for (i, j), val in np.ndenumerate(confusion_matrix_values):
             label = labels[i][j]

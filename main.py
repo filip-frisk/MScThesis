@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240423_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240425_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -24,7 +24,7 @@ SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
 SELECTED_PHYSICAL_VARIABLES = ['DPhill', 'DYjj', 'mjj', 'mll', 'mT', 'ptTot','sumOfCentralitiesL','mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg (row 18)
 SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV',''] # Is it really GeV? units? '' empty for unitless
 
-CLASS_WEIGHT = 'raw' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
+CLASS_WEIGHT = 'MC_EACH_bkg_as_sgn' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
 
 ########################################################## Temporary/Class weights ##########################################################
 """
@@ -98,7 +98,7 @@ from imblearn.ensemble import RUSBoostClassifier
 ###########################  MODELS ###########################
 
 #MLP = NamedClassifier(MLPClassifier(),name = "MLP")
-#RF = NamedClassifier(RandomForestClassifier(),name = "RF")
+RF = NamedClassifier(RandomForestClassifier(),name = "RF")
 #LR = NamedClassifier(LogisticRegression(max_iter = 1000, class_weight='balanced'),name = "LR") # 
 #AdaBoost = NamedClassifier(AdaBoostClassifier(estimator = DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "AdaBoost")
 #Bagging = NamedClassifier(BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "Bagging")  
@@ -111,19 +111,15 @@ from imblearn.ensemble import RUSBoostClassifier
 #RUSBC = NamedClassifier(RUSBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200, learning_rate=1.0),name = "RUSBC")
 
 
-
-KNN = NamedClassifier(knn_pipeline,name = "KNN")
-
-
 MODELS = [
     #XGB,
-    #RF,
+    RF,
     #LR,
     #AdaBoost,
     #Bagging,
     #HGBC,
     #SVC,
-    KNN,
+    #KNN,
     #MLP,
     #RUSBC,
     #BRF
@@ -154,11 +150,11 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
 # Old root file arleady in dataframe
 
 
-"""
+#"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
     
-"""
+#"""
 ########################################################## 2. DATA VISUALIZATION ##########################################################
 
 # multiple variables plots 
@@ -193,7 +189,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-"""
+#"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -211,7 +207,7 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-"""
+#"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
 #"""

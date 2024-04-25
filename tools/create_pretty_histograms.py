@@ -119,7 +119,19 @@ def create_pretty_histograms(df: pd.DataFrame,
         plt.xlabel(r'${} \ [{}]$'.format(plot_variable, UNIT))
         plt.ylabel(f'Events/{bin_width:.2f} {UNIT}')
     if PLOT_TYPE == 'postfit':
-        plt.xlabel(f'{plot_variable}')
+
+        # plot_variable looks like: 
+        # "MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble"
+        #     0        1     2           3                4     5
+        # MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_model
+        #    0       1     2           3                 4     
+        parts = plot_variable.split("_")
+        try:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
+        except IndexError:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+
+        plt.xlabel(clean_label)
         plt.ylabel(f'Events')
     
     plt.legend(loc='upper right')
@@ -192,6 +204,7 @@ def create_pretty_histograms(df: pd.DataFrame,
     print(f"Number of signal events: {[round(hist,0) for hist in signal_hist]}")
     print(f"Number of background events: {[round(hist,0) for hist in background_hist]}")
     print(f"Signal-to-noise ratio: {[round(ratio,2) for ratio in signal_to_noise_ratio]}")
+    print(f"Cross section estimate: {[round(np.sqrt(ratio),2) for ratio in signal_to_noise_ratio]}")
 
     plt.bar(total_bin_edges[:-1], signal_to_noise_ratio, width=bin_width, align='edge', color=colors[-1], alpha=0.5, edgecolor='black', linewidth=1.5)
     
@@ -205,7 +218,19 @@ def create_pretty_histograms(df: pd.DataFrame,
     plt.xticks(total_bin_edges[:-1]+bin_width/2, x_labels, rotation=0)
     
     plt.ylabel('(Tot. - Bkg)/Bkg')
-    plt.xlabel(f'{plot_variable}')
+
+    # plot_variable looks like: 
+    # "MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble" OR
+    #     0        1     2           3                4     5
+    # MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_model
+    #    0       1     2           3                 4     
+    parts = plot_variable.split("_")
+    try:
+        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
+    except IndexError:
+        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+
+    plt.xlabel(clean_label)
 
     #if PLOT_TYPE == 'prefit':
     plt.xticks(rotation=90)
@@ -264,7 +289,19 @@ def create_pretty_histograms(df: pd.DataFrame,
     except ValueError:
         ax_bottom.set_ylim(0,2)
     ax_bottom.set_ylabel('(Tot. - Bkg)/Bkg')
-    ax_bottom.set_xlabel(f'{plot_variable}')    
+
+    # plot_variable looks like: 
+    # "MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble" OR
+    #     0        1     2           3                4     5
+    # MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_model
+    #    0       1     2           3                 4     
+    parts = plot_variable.split("_")
+    try:
+        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
+    except IndexError:
+        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+
+    ax_bottom.set_xlabel(clean_label)    
     
     if PLOT_TYPE == 'prefit':
         ax_bottom.set_xticklabels(x_labels, rotation=90)
@@ -292,6 +329,8 @@ def create_pretty_histograms(df: pd.DataFrame,
         total_test_events['Total'] = sum(total_test_events.values())
         total_test_events['Total bkg'] = total_test_events['Total'] - total_test_events[SIGNAL[0]]
         total_test_events['Sgn/Bkg'] = total_test_events[SIGNAL[0]]/total_test_events['Total bkg']
+        # Cross section estimate:  figure-of-merit signal/sqrt(background) - Jonas Strandberg 
+        total_test_events['CSE'] = total_test_events[SIGNAL[0]]/ np.sqrt(total_test_events['Total bkg'])
         
 
         bottom_edge_in_last_bin = total_bin_edges[-2]
@@ -310,7 +349,7 @@ def create_pretty_histograms(df: pd.DataFrame,
             last_bin_test_events['Total'] = sum(last_bin_test_events.values())
             last_bin_test_events['Total bkg'] = last_bin_test_events['Total'] - last_bin_test_events[SIGNAL[0]]
             last_bin_test_events['Sgn/Bkg'] = last_bin_test_events[SIGNAL[0]]/last_bin_test_events['Total bkg']
-            
+            last_bin_test_events['CSE'] = last_bin_test_events[SIGNAL[0]]/ np.sqrt(last_bin_test_events['Total bkg'])
 
         # Creating DataFrame to save 
         df_tmp = pd.DataFrame({
