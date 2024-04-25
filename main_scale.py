@@ -66,7 +66,7 @@ mlp_classifier = MLPClassifier(
     alpha=0.0001,            # L2 regularization term
     batch_size='auto',       # 'auto' means min(200, n_samples)
     learning_rate='adaptive',# Adaptive learning rate
-    max_iter=1000            # Maximum number of iterations
+    max_iter=100            # Maximum number of iterations
 )
 
 rf_classifier = RandomForestClassifier(
@@ -74,7 +74,7 @@ rf_classifier = RandomForestClassifier(
     max_depth=None,        # Full depth
     max_features='sqrt',   # Maximum features to consider for a split
     bootstrap=True,        # Use bootstrapping
-    n_jobs=20             # Use all available cores
+    n_jobs=5             # Use all available cores
 )
 
 lr_classifier = LogisticRegression(
@@ -83,7 +83,7 @@ lr_classifier = LogisticRegression(
     penalty='l1',          # L1 regularization to encourage sparsity
     C=0.1,                 # Regularization strength
     class_weight='balanced', # Adjust for imbalanced datasets
-    n_jobs=20              # Use all CPU cores
+    n_jobs=5              # Use all CPU cores
 )
 
 hgbc_classifier = HistGradientBoostingClassifier(
@@ -105,7 +105,7 @@ from sklearn.neighbors import KNeighborsClassifier
 knn_pipeline = make_pipeline(
     StandardScaler(),
     PCA(n_components=50, svd_solver='randomized'),
-    KNeighborsClassifier(n_neighbors=30, weights='distance', algorithm='auto', n_jobs=20)
+    KNeighborsClassifier(n_neighbors=30, weights='distance', algorithm='auto', n_jobs=5)
 )
 
 ########################### SKLEARN WRAPPER MODELS ###########################
@@ -125,7 +125,7 @@ xgb_classifier = XGBClassifier(
     max_depth=10,          # The maximum depth of each tree, increase complexity and overfitting
     learning_rate=0.01,    # prevents overfitting. Smaller values make the boosting process more conservative.
     scale_pos_weight=1/0.0003609388,  # Balancing of positive and negative weights. Useful in unbalanced classes to scale the gradient for the minority class.
-    n_jobs=20              # Number of parallel threads used to run XGBoost. Setting to -1 means using all available cores.
+    n_jobs=5              # Number of parallel threads used to run XGBoost. Setting to -1 means using all available cores.
 )
 
 brf_classifier = BalancedRandomForestClassifier(
@@ -134,12 +134,12 @@ brf_classifier = BalancedRandomForestClassifier(
     min_samples_leaf=2, # min_samples_leaf: The minimum number of samples required to be at a leaf node. A smaller leaf makes the model more sensitive to noise in the dataset, whereas a larger value results in a smoother decision boundary.
     max_features='auto',# max_features: The number of features to consider when looking for the best split. Using 'auto' lets the model consider all features which can provide the best splits but might increase computation time.
     bootstrap=True,     # bootstrap: Whether bootstrap samples are used when building trees. If True, each tree is trained on a random subset of the original data, with samples being drawn with replacement.
-    n_jobs=20           # n_jobs: The number of jobs to run in parallel for both fit and predict. Setting n_jobs=-1 uses all processors, speeding up training but consuming more system resources.
+    n_jobs=5           # n_jobs: The number of jobs to run in parallel for both fit and predict. Setting n_jobs=-1 uses all processors, speeding up training but consuming more system resources.
 )
 
 ###########################  MODELS ###########################
 
-MLP = NamedClassifier(mlp_classifier,name = "MLP")
+#MLP = NamedClassifier(mlp_classifier,name = "MLP")
 RF = NamedClassifier(rf_classifier,name = "RF")
 LR = NamedClassifier(lr_classifier,name = "LR") # 
 HGBC = NamedClassifier(hgbc_classifier,name = "HGBC")
@@ -152,7 +152,7 @@ BRF = NamedClassifier(brf_classifier,name = "BRF")
 
 
 MODELS = [
-    MLP,
+    #MLP,
     RF,
     LR,
     HGBC,
@@ -172,7 +172,7 @@ MODELS = [
 ########################################################## 1. DATA SELECTION ##########################################################
 
 # New root file to dataframe
-#"""
+"""
 from tools.create_dataframe import create_dataframe
 
 create_dataframe(DATA_RELATIVE_FOLDER_PATH, 
@@ -182,17 +182,18 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
                  SELECTED_OTHER_VARIABLES, 
                  SELECTED_PHYSICAL_VARIABLES)
 
-#"""
+"""
 # Old root file arleady in dataframe
 
 
-#"""
+"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
-    
+
+""" 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-#"""
+"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -210,7 +211,7 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-#"""
+"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
 #"""
