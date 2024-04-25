@@ -142,7 +142,6 @@ brf_classifier = BalancedRandomForestClassifier(
     n_estimators=1000,  # n_estimators: Specifies the number of trees in the forest. A higher number improves the model's performance and robustness but increases computational load.
     max_depth=10,       # max_depth: Sets the maximum depth of each tree. Limiting depth helps prevent overfitting but too shallow trees might underfit.
     min_samples_leaf=2, # min_samples_leaf: The minimum number of samples required to be at a leaf node. A smaller leaf makes the model more sensitive to noise in the dataset, whereas a larger value results in a smoother decision boundary.
-    max_features='auto',# max_features: The number of features to consider when looking for the best split. Using 'auto' lets the model consider all features which can provide the best splits but might increase computation time.
     bootstrap=True,     # bootstrap: Whether bootstrap samples are used when building trees. If True, each tree is trained on a random subset of the original data, with samples being drawn with replacement.
     n_jobs=5           # n_jobs: The number of jobs to run in parallel for both fit and predict. Setting n_jobs=-1 uses all processors, speeding up training but consuming more system resources.
 )
@@ -166,8 +165,8 @@ MODELS = [
     #RF,
     #LR,
     #HGBC,
-    KNN,
-    XGB,
+    #KNN,
+    #XGB,
     BRF
 ]
 # bench: 
