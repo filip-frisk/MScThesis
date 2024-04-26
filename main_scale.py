@@ -28,7 +28,7 @@ CLASS_WEIGHT = 'raw' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bk
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
-CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
+CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
 K_FOLD = 1 # number of k-folds for cross-validation
 
 #Name Wrapper for sklearn based models
@@ -59,7 +59,6 @@ from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weig
 
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
-
 import os
 
 # numpy uses BLAS 
@@ -69,6 +68,11 @@ import os
 os.environ['OPENBLAS_NUM_THREADS'] = '8'
 os.environ['OPENBLAS_MAIN_FREE'] = '1'
 
+import mkl
+
+mkl.set_num_threads(8)
+
+
 mlp_classifier = MLPClassifier(
     hidden_layer_sizes=(512, 256, 128, 64, 32, 24, 16, 8, 4, 2),
     activation='relu',       # ReLU activation function
@@ -76,7 +80,10 @@ mlp_classifier = MLPClassifier(
     alpha=0.0001,            # L2 regularization term
     batch_size='auto',       # 'auto' means min(200, n_samples)
     learning_rate='adaptive',# Adaptive learning rate
-    max_iter=100            # Maximum number of iterations
+    max_iter=100,            # Maximum number of iterations
+    early_stopping=True,  # Enable early stopping
+    validation_fraction=0.1,  # Use 10% of data for validation
+    n_iter_no_change=10  # Number of iterations with no improvement to wait before stopping
 )
 
 rf_classifier = RandomForestClassifier(
@@ -131,24 +138,25 @@ from xgboost import XGBClassifier
 from imblearn.ensemble import BalancedRandomForestClassifier
 
 xgb_classifier = XGBClassifier(
-    n_estimators=1000,     # The number of trees to build, increase complexity and overfitting
-    max_depth=10,          # The maximum depth of each tree, increase complexity and overfitting
-    learning_rate=0.01,    # prevents overfitting. Smaller values make the boosting process more conservative.
-    scale_pos_weight=1/0.0003609388,  # Balancing of positive and negative weights. Useful in unbalanced classes to scale the gradient for the minority class.
+    n_estimators=2000,     # The number of trees to build, increase complexity and overfitting
+    max_depth=0,          # The maximum depth of each tree, increase complexity and overfitting
+    learning_rate=0.05,    # prevents overfitting. Smaller values make the boosting process more conservative.
+    #scale_pos_weight=1/0.0003609388,  # Balancing of positive and negative weights. Useful in unbalanced classes to scale the gradient for the minority class.
+    eval_metric='auc',  # Evaluation metric for cross-validation
     n_jobs=5              # Number of parallel threads used to run XGBoost. Setting to -1 means using all available cores.
 )
 
 brf_classifier = BalancedRandomForestClassifier(
-    n_estimators=1000,  # n_estimators: Specifies the number of trees in the forest. A higher number improves the model's performance and robustness but increases computational load.
-    max_depth=10,       # max_depth: Sets the maximum depth of each tree. Limiting depth helps prevent overfitting but too shallow trees might underfit.
-    min_samples_leaf=2, # min_samples_leaf: The minimum number of samples required to be at a leaf node. A smaller leaf makes the model more sensitive to noise in the dataset, whereas a larger value results in a smoother decision boundary.
+    n_estimators=2000,  # n_estimators: Specifies the number of trees in the forest. A higher number improves the model's performance and robustness but increases computational load.
+    max_depth=None,       # max_depth: Sets the maximum depth of each tree. Limiting depth helps prevent overfitting but too shallow trees might underfit.
+    min_samples_leaf=10, # min_samples_leaf: The minimum number of samples required to be at a leaf node. A smaller leaf makes the model more sensitive to noise in the dataset, whereas a larger value results in a smoother decision boundary.
     bootstrap=True,     # bootstrap: Whether bootstrap samples are used when building trees. If True, each tree is trained on a random subset of the original data, with samples being drawn with replacement.
     n_jobs=5           # n_jobs: The number of jobs to run in parallel for both fit and predict. Setting n_jobs=-1 uses all processors, speeding up training but consuming more system resources.
 )
 
 ###########################  MODELS ###########################
 
-#MLP = NamedClassifier(mlp_classifier,name = "MLP")
+MLP = NamedClassifier(mlp_classifier,name = "MLP")
 RF = NamedClassifier(rf_classifier,name = "RF")
 LR = NamedClassifier(lr_classifier,name = "LR") # 
 HGBC = NamedClassifier(hgbc_classifier,name = "HGBC")
@@ -161,13 +169,13 @@ BRF = NamedClassifier(brf_classifier,name = "BRF")
 
 
 MODELS = [
-    #MLP,
-    RF,
-    LR,
-    HGBC,
-    KNN,
-    XGB,
-    BRF
+    MLP,
+    #RF,
+    #LR,
+    #HGBC,
+    #KNN,
+    #XGB,
+    #BRF
 ]
 # bench: 
 # see fit keras model for specifics 
@@ -223,7 +231,7 @@ for k_fold in range(1, K_FOLD+1):
 """
 ########################################################## 4. Fit/TRAINING ##########################################################
 
-"""
+#"""
 from tools.fit_models import fit_models
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -235,11 +243,11 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
         SELECTED_PHYSICAL_VARIABLES,
         MODELS_RELATIVE_FOLDER_PATH,
         CLASSIFICATION_TYPE)
-"""
+#"""
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 
-#"""
+"""
 from tools.evaluate_models import evaluate_models
 
 for k_fold in range(1, K_FOLD+1):
@@ -258,4 +266,4 @@ for k_fold in range(1, K_FOLD+1):
         CUT,
         SELECTED_PHYSICAL_VARIABLES
     )
-#"""
+"""
