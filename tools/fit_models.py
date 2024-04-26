@@ -4,6 +4,8 @@ import time
 
 from typing import List
 
+from joblib import parallel_backend
+
 def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
                EXPERIMENT_ID: str,
                DATA_FILENAME_WITHOUT_FILETYPE: str,
@@ -53,8 +55,9 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
                 # as XGB does not support string labels, we need to convert them to 0 and 1
                 if model.name == 'XGB':
                     df_train['eventType'] = df_train['eventType'].map({'Signal': 0,'Background': 1})
-                
-                model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
+
+                with parallel_backend('threading', n_jobs=5):        
+                    model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
 
                 if model.name == 'XGB':
                     df_train['eventType'] = df_train['eventType'].map({0: 'Signal',1: 'Background'})
@@ -63,8 +66,9 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
 
                 if model.name == 'XGB':
                     df_train['label'] = df_train['label'].map({'VBF': 0,'WW': 1,'Zjets': 2,'ttbar': 3})                
-                    
-                model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['label']) # predict: label  
+                
+                with parallel_backend('threading', n_jobs=5):
+                    model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['label']) # predict: label  
 
                 if model.name == 'XGB':
                     df_train['label'] = df_train['label'].map({0: 'VBF',1: 'WW',2: 'Zjets',3: 'ttbar'})

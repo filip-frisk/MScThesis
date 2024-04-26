@@ -28,7 +28,7 @@ CLASS_WEIGHT = 'raw' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bk
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
-CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
+CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
 K_FOLD = 1 # number of k-folds for cross-validation
 
 #Name Wrapper for sklearn based models
@@ -61,17 +61,10 @@ from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
 import os
 
-# numpy uses BLAS 
-# BLAS routines are optimized for performance and can take advantage of the hardware capabilities of the CPU
-# For OpenBLAS
-
-os.environ['OPENBLAS_NUM_THREADS'] = '8'
-os.environ['OPENBLAS_MAIN_FREE'] = '1'
-
-import mkl
-
-mkl.set_num_threads(8)
-
+os.environ['OPENBLAS_NUM_THREADS'] = '5'
+os.environ['MKL_NUM_THREADS'] = '5'
+os.environ['NUMEXPR_NUM_THREADS'] = '5'
+os.environ['OMP_NUM_THREADS'] = '5'
 
 mlp_classifier = MLPClassifier(
     hidden_layer_sizes=(512, 256, 128, 64, 32, 24, 16, 8, 4, 2),
