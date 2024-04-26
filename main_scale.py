@@ -162,11 +162,11 @@ BRF = NamedClassifier(brf_classifier,name = "BRF")
 
 MODELS = [
     #MLP,
-    #RF,
-    #LR,
-    #HGBC,
-    #KNN,
-    #XGB,
+    RF,
+    LR,
+    HGBC,
+    KNN,
+    XGB,
     BRF
 ]
 # bench: 
@@ -223,7 +223,7 @@ for k_fold in range(1, K_FOLD+1):
 """
 ########################################################## 4. Fit/TRAINING ##########################################################
 
-#"""
+"""
 from tools.fit_models import fit_models
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -235,7 +235,7 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
         SELECTED_PHYSICAL_VARIABLES,
         MODELS_RELATIVE_FOLDER_PATH,
         CLASSIFICATION_TYPE)
-#"""
+"""
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 
