@@ -1,3 +1,11 @@
+# Needs to be before other inputs 
+import os
+
+os.environ['OPENBLAS_NUM_THREADS'] = '5'
+os.environ['MKL_NUM_THREADS'] = '5'
+os.environ['NUMEXPR_NUM_THREADS'] = '5'
+os.environ['OMP_NUM_THREADS'] = '5'
+
 import pickle 
 
 ######################################################################################################################################
@@ -59,12 +67,7 @@ from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weig
 
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
 
-import os
 
-os.environ['OPENBLAS_NUM_THREADS'] = '5'
-os.environ['MKL_NUM_THREADS'] = '5'
-os.environ['NUMEXPR_NUM_THREADS'] = '5'
-os.environ['OMP_NUM_THREADS'] = '5'
 
 mlp_classifier = MLPClassifier(
     hidden_layer_sizes=(512, 256, 128, 64, 32, 24, 16, 8, 4, 2),
