@@ -126,7 +126,7 @@ This function trains multiple machine learning models using k-fold cross-validat
 - `CLASS_WEIGHT`: string #Must be one of 'raw', 'MC_EACH_bkg_as_sgn',MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'.
 - `MODELS`: List[Object[sklearn model]] ex. [NamedClassifier(MLPClassifier(),name = "MLP"),NamedClassifier(XGBClassifier(),name = "XGB")]
 - `SELECTED_PHYSICAL_VARIABLES: List[strings]`ex ['DPhijj', 'mll']
-- ``MODELS_RELATIVE_FOLDER_PATH:` stringex. 'models/'
+- ``MODELS_RELATIVE_FOLDER_PATH:` string ex. 'models/'
 - `CLASSIFICATION_TYPE`: string ex. binary # only binary and multi_class supported
 
 
@@ -142,8 +142,8 @@ This function evaluates machine learning models on a test dataset, generates var
 
 
 ### input:
-- PLOT_RELATIVE_FOLDER_PATH: String, the relative path to the folder where plots will be saved. ex. 'plots/'
-- MODELS_RELATIVE_FOLDER_PATH: String, the relative path to the folder where models are saved. ex. 'models/'
+- `PLOT_RELATIVE_FOLDER_PATH`: string` ex. 'data/' # create if not available
+- ``MODELS_RELATIVE_FOLDER_PATH:` string ex. 'models/'
 - `EXPERIMENT_ID`: string ex. '240520_I'
 - `DATA_RELATIVE_FOLDER_PATH`: string ex. 'data/'
 - `DATA_FILENAME_WITHOUT_FILETYPE`: string  ex. 'nTupleVBF2jSF'
