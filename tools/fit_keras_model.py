@@ -59,7 +59,7 @@ callbacks = [
 optimizer = tf.keras.optimizers.Adagrad(learning_rate=30.0)
 
 # Model specification
-# input layer is not defined here
+# input layer is not defined here 
 model_hidden_layer_spec = {
     'Dense_1': {'units': 256, 'activation': 'relu', 'input_shape': (len(SELECTED_PHYSICAL_VARIABLES),)},
     'Dropout_1': {'rate': dropout_rate},

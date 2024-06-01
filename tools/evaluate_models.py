@@ -54,12 +54,12 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         
         if CLASSIFICATION_TYPE == 'binary':
             
-            if model.name == 'XGB':
+            if model.name == 'XGB' or 'LGBM':
                 df_test['eventType'] = df_test['eventType'].map({'Signal': 0,'Background': 1})
                     
             df_distribution = pd.DataFrame(model.predict_proba(df_test[SELECTED_PHYSICAL_VARIABLES]), columns=model.classes_)
             
-            if model.name == 'XGB':
+            if model.name == 'XGB' or 'LGBM':
                 df_test['eventType'] = df_test['eventType'].map({0: 'Signal',1: 'Background'})
                 df_distribution.columns = ['Signal','Background']
             
@@ -68,12 +68,12 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
         
         elif CLASSIFICATION_TYPE == 'multi_class':
 
-            if model.name == 'XGB':
+            if model.name == 'XGB' or 'LGBM':
                 df_test['label'] = df_test['label'].map({'VBF': 0,'WW': 1,'Zjets': 2,'ttbar': 3})  
 
             df_distribution = pd.DataFrame(model.predict_proba(df_test[SELECTED_PHYSICAL_VARIABLES]), columns=model.classes_)
             
-            if model.name == 'XGB':
+            if model.name == 'XGB' or 'LGBM':
                 df_test['label'] = df_test['label'].map({0: 'VBF',1: 'WW',2: 'Zjets',3: 'ttbar'})
                 df_distribution.columns = ['VBF','WW','Zjets','ttbar']
             
@@ -115,11 +115,18 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     # Maximum
     df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Max_Ensamble'] = df_test[models_ensamble].max(axis=1)
 
-    
+    # weighted mean 
+    # WARNING change these weights based on best sgn/bkg in csv file 
+
+    weights = [0.3846153846,0.1538461538,0.1153846154,0.3461538462]
+
+    # use weights to calculate the ensamble
+    df_test[f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_WeightedMean_Ensamble'] = df_test[models_ensamble].apply(lambda x: np.average(x, weights=weights), axis=1)
 
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble')
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Median_Ensamble')
     model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Max_Ensamble')
+    model_names.append(f'MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_WeightedMean_Ensamble')
 
     # change back to the main directory from the model directory
     os.chdir('../..')
@@ -133,7 +140,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     BINS = 10 # 9*1/10 = [0.90,1.0] last bin with 90% confidence  
     # plot the results
     
-    SIGNAL_ENVELOPE_SCALE = 5000 # easier to guess than to scale dynamically
+    SIGNAL_ENVELOPE_SCALE = 500 # easier to guess than to scale dynamically
     NORMALIZE_WEIGHTS = False
     
     # plot all models in all folds
@@ -211,7 +218,7 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
 
         # Add metrics to the bottom plot
         ax_bottom.axis('off')
-        ax_bottom.text(0.5, 0.75, f"Metrics:\n Precision: TP/(TP+FP) = {round(MVAOutput_precision,2)} \n True Positive Rate/Signal efficiency: TP/(TP+FN) = {round(MVAOutput_recall,2)}\n F1 Score: Harmonic_mean(Precision,Recall) = {round(MVAOutput_f1_score,2)} \n Accuracy: (TP+TN)/(TP+FP+FN+TN)  = {round(MVAOutput_accuracy,2)}\n Specificity: TN/(TN+FP) = {round(MVAOutput_specificity,2)}\n False Positive Rate/Background Efficiency: FP/(FP+TN) = {round(MVAOutput_false_alarm_rate,2)} ", ha='center', va='center', color='black')
+        ax_bottom.text(0.5, 0.75, f"Metrics:\n Precision: TP/(TP+FP) = {round(MVAOutput_precision,2)} \n Recall: TP/(TP+FN) = {round(MVAOutput_recall,2)}\n F1 Score: Harmonic_mean(Precision,Recall) = {round(MVAOutput_f1_score,2)} \n Accuracy: (TP+TN)/(TP+FP+FN+TN)  = {round(MVAOutput_accuracy,2)}\n Specificity: TN/(TN+FP) = {round(MVAOutput_specificity,2)}\n False Positive Rate: FP/(FP+TN) = {round(MVAOutput_false_alarm_rate,2)} ", ha='center', va='center', color='black')
         
         # tight layout    
         plt.subplots_adjust(wspace=0, hspace=0)
@@ -262,8 +269,8 @@ def evaluate_models(PLOT_RELATIVE_FOLDER_PATH: str,
     # add perfect classifier as comparison
     plt.plot([0, 0, 1], [0, 1, 1], linestyle='--', lw=2, color='b', label='Perfect classifier, AUC = 1.0')
         
-    plt.xlabel('False Positive Rate/Background Efficiency')
-    plt.ylabel('True Positive Rate/Signal Efficiency')
+    plt.xlabel('Background Efficiency')
+    plt.ylabel('Signal Efficiency')
         
     # add legend above the plot window
 

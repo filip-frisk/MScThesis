@@ -59,7 +59,7 @@ def create_pretty_histograms(df: pd.DataFrame,
 
     if PLOT_TYPE == 'prefit': # Under/over flow not needed for the prefit
     
-        # Calculate the 5th and 95th percentile to exclude extreme outliers
+        # Calculate the for ex 5th and 95th percentile to exclude extreme outliers
         flattened_data = np.concatenate(plot_data)
         lower_bound = np.percentile(flattened_data, OVERFLOW_UNDERFLOW_PERCENTILE['lower_bound'])    
         upper_bound = np.percentile(flattened_data, OVERFLOW_UNDERFLOW_PERCENTILE['upper_bound'])
@@ -89,7 +89,6 @@ def create_pretty_histograms(df: pd.DataFrame,
     signal_weight = df.loc[df['label'] == SIGNAL[0]]['weight'] * SIGNAL_ENVELOPE_SCALE
     signal_label = f"{SIGNAL[0]} x {SIGNAL_ENVELOPE_SCALE}"
 
-    
     # Calculate bin width 
     bin_width = (upper_bound - lower_bound)/BINS
     print(f"Bin width of {bin_width:.2f}")
@@ -116,8 +115,22 @@ def create_pretty_histograms(df: pd.DataFrame,
     # plt.xlim(0, 1) # No white space 
 
     if PLOT_TYPE == 'prefit':   
-        plt.xlabel(r'${} \ [{}]$'.format(plot_variable, UNIT))
-        plt.ylabel(f'Events/{bin_width:.2f} {UNIT}')
+
+        if UNIT == 'Unitless':
+            plt.xlabel(r'${}$'.format(plot_variable))
+        else:
+            plt.xlabel(r'${} \ [{}]$'.format(plot_variable, UNIT))
+
+        if NORMALIZE_WEIGHTS:
+            if UNIT == 'GeV': # From MeV to GeV 
+                plt.ylabel(f'Events/{bin_width/1000:.2f} {UNIT}')
+                #plt.ylabel(f'Events/{bin_width:.2f}')
+            if UNIT == 'Unitless':
+                plt.ylabel(f'Events/{bin_width:.2f}')
+
+        if not NORMALIZE_WEIGHTS:
+            plt.ylabel(f'Events')
+        
     if PLOT_TYPE == 'postfit':
 
         # plot_variable looks like: 
@@ -136,16 +149,27 @@ def create_pretty_histograms(df: pd.DataFrame,
     
     plt.legend(loc='upper right')
     
-    subtext_latex = r'Internal KTH: Run 2 Monte Carlo data, all campaigns' + '\n' + r'$HWW \rightarrow WW^* \rightarrow l\nu l\nu$' + '\n' + r'SF VBF $N_{jet}$ $\geq$ 2' + '\n' + r'rootfilename: {}'.format(cut) + '\n' +f"{PLOT_TYPE}"
+    subtext_latex = r'$\boldsymbol{Private\ KTH}$' + '\n' + r'$HWW \rightarrow WW^* \rightarrow l\nu l\nu$' + '\n' + r'VBF SF $N_{jet}$ $\geq$ 2' + '\n' + r'Full Run 2 Monte Carlo data' #+ '\n' + r'rootfilename: {}'.format(cut) + '\n' +f"{PLOT_TYPE}"
    
     if PLOT_TYPE == 'prefit':
-        atlasify(subtext = subtext_latex + f" with {OVERFLOW_UNDERFLOW_PERCENTILE['lower_bound']}% overflow/underflow "  , sub_font_size = 8)
+        atlasify(subtext = subtext_latex + "\n"+ f"{OVERFLOW_UNDERFLOW_PERCENTILE['lower_bound']}% overflow/underflow "  , sub_font_size = 8)
     if PLOT_TYPE == 'postfit':
         atlasify(subtext = subtext_latex   , sub_font_size = 8)
     
     ax = plt.gca() # Get the current axis
     ax.ticklabel_format(style='plain', axis='both', scilimits=(0,0))
+
     
+    if UNIT == 'GeV':
+        # Hardcoded fix for x-axis labels #TODO fix later 
+        # Scale from MeV to GeV
+        
+        # Get the current tick positions
+        ticks = ax.get_xticks()
+        
+        # Scale from MeV to GeV
+        ax.set_xticklabels([f'{int(tick/1000)}' for tick in ticks])
+        
     os.makedirs(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID, exist_ok=True)
 
     os.chdir(PLOT_RELATIVE_FOLDER_PATH+EXPERIMENT_ID)
@@ -177,12 +201,12 @@ def create_pretty_histograms(df: pd.DataFrame,
     print(f"Number of events per label: {events_per_label}")
     print(f"Number of MC samples per label: {MCsamples_per_labels}")
 
-    # sgn + bkg = total
+    # sgn + bkg = total 
     # Get same histogram as above note that plt.hist uses np.histogram to get the binning
     total_hist, total_bin_edges = np.histogram(np.concatenate(plot_data), bins=BINS, range=bounds,weights=np.concatenate(normalized_plot_weights))
     # Need to scale pack to calculate correctly the signal-to-noise ratio
     signal_hist, signal_bin_edges = np.histogram(signal_scaled, bins=BINS, range=bounds,weights=[weight/SIGNAL_ENVELOPE_SCALE for weight in normalized_signal_weight])
-    
+
     # check if total_bin_edges is same as signal_bin_edges
     if np.array_equal(total_bin_edges,signal_bin_edges):
         print("Bin edges are the same, OK!")
@@ -223,14 +247,16 @@ def create_pretty_histograms(df: pd.DataFrame,
     # "MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble" OR
     #     0        1     2           3                4     5
     # MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_model
-    #    0       1     2           3                 4     
-    parts = plot_variable.split("_")
-    try:
-        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
-    except IndexError:
-        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+    #    0       1     2           3                 4    
 
-    plt.xlabel(clean_label)
+    if PLOT_TYPE == 'postfit':  
+        parts = plot_variable.split("_")
+        try:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
+        except IndexError:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+
+        plt.xlabel(clean_label)
 
     #if PLOT_TYPE == 'prefit':
     plt.xticks(rotation=90)
@@ -266,13 +292,14 @@ def create_pretty_histograms(df: pd.DataFrame,
     ax_top.set_xticks([]) 
 
     if PLOT_TYPE == 'prefit':
-        atlasify(atlas = True, axes=ax_top,subtext = subtext_latex + " " + str(int(sum(total_hist)))+ f" events with ca. {int(events_per_label[SIGNAL[0]])} signal events from {int(MCsamples_per_labels[SIGNAL[0]])} MC Samples, " + f"{OVERFLOW_UNDERFLOW_PERCENTILE['lower_bound']}% overflow/underflow " , sub_font_size = 8)
+        atlasify(atlas = True, axes=ax_top,subtext = subtext_latex + "\n" + str(int(sum(total_hist)))+ f" events with ca. {int(events_per_label[SIGNAL[0]])} signal events from {int(MCsamples_per_labels[SIGNAL[0]])} MC Samples" + "\n" + f"{OVERFLOW_UNDERFLOW_PERCENTILE['lower_bound']}% overflow/underflow " , sub_font_size = 8)
     if PLOT_TYPE == 'postfit':
-        atlasify(atlas = True, axes=ax_top,subtext = subtext_latex + " " + str(int(sum(total_hist)))+ f" events with ca. {int(events_per_label[SIGNAL[0]])} signal events from {int(MCsamples_per_labels[SIGNAL[0]])} MC Samples." , sub_font_size = 8)
+        atlasify(atlas = True, axes=ax_top,subtext = subtext_latex + "\n" + "Test data:" + str(int(sum(total_hist)))+ f" events with ca. {int(events_per_label[SIGNAL[0]])} signal events from {int(MCsamples_per_labels[SIGNAL[0]])} MC Samples." , sub_font_size = 8)
     
     atlasify(atlas = False, axes=ax_bottom, sub_font_size = 8)
 
     # Plot signal-to-noise ratio on ax_bottom
+    
     ax_bottom.bar(total_bin_edges[:-1], signal_to_noise_ratio, width=bin_width, align='edge', color=colors[-1], alpha=0.5, edgecolor='black', linewidth=1.5)
     ax_bottom.set_xticks(total_bin_edges[:-1]+bin_width/2, x_labels)
     ax_bottom.set_xlim(bounds)
@@ -283,7 +310,7 @@ def create_pretty_histograms(df: pd.DataFrame,
     for i in range(len(signal_hist)):
         ax_bottom_second_y_axis.text(total_bin_edges[i]+bin_width/2, signal_hist[i]+0.3, f"{round((signal_to_noise_ratio[i]),1)}/{round((signal_hist[i]),1)}", ha='center', va='bottom')
     ax_bottom_second_y_axis.set_ylabel('Signal events')    
-    
+
     try:
         ax_bottom.set_ylim(0, max(signal_to_noise_ratio)*1.1)
     except ValueError:
@@ -294,15 +321,17 @@ def create_pretty_histograms(df: pd.DataFrame,
     # "MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_Mean_Ensamble" OR
     #     0        1     2           3                4     5
     # MVAOutput_fold_{K_FOLD}_{CLASSIFICATION_TYPE}_model
-    #    0       1     2           3                 4     
-    parts = plot_variable.split("_")
-    try:
-        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
-    except IndexError:
-        clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+    #    0       1     2           3                 4   
 
-    ax_bottom.set_xlabel(clean_label)    
-    
+    if PLOT_TYPE == 'postfit':  
+        parts = plot_variable.split("_")
+        try:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}_{parts[5]}"
+        except IndexError:
+            clean_label = f"{parts[0]}_{parts[3]}_{parts[4]}"
+
+        ax_bottom.set_xlabel(clean_label)    
+        
     if PLOT_TYPE == 'prefit':
         ax_bottom.set_xticklabels(x_labels, rotation=90)
         
@@ -332,8 +361,10 @@ def create_pretty_histograms(df: pd.DataFrame,
         # Cross section estimate:  figure-of-merit signal/sqrt(background) - Jonas Strandberg 
         total_test_events['CSE'] = total_test_events[SIGNAL[0]]/ np.sqrt(total_test_events['Total bkg'])
         
-
+        
         bottom_edge_in_last_bin = total_bin_edges[-2]
+        
+
         bottom_bin_string = x_labels[-1]
 
         # get total number of events in test data in the last bin
@@ -345,11 +376,17 @@ def create_pretty_histograms(df: pd.DataFrame,
             last_bin_test_events['Sgn/Bkg'] = 0
         else:
             print(f"Events in the last bin {bottom_bin_string}.")
-            last_bin_test_events = df.loc[df[plot_variable] > bottom_edge_in_last_bin].groupby('label')['weight'].sum().to_dict()
+            last_bin_test_events = df.loc[df[plot_variable] >= bottom_edge_in_last_bin].groupby('label')['weight'].sum().to_dict()
             last_bin_test_events['Total'] = sum(last_bin_test_events.values())
             last_bin_test_events['Total bkg'] = last_bin_test_events['Total'] - last_bin_test_events[SIGNAL[0]]
             last_bin_test_events['Sgn/Bkg'] = last_bin_test_events[SIGNAL[0]]/last_bin_test_events['Total bkg']
             last_bin_test_events['CSE'] = last_bin_test_events[SIGNAL[0]]/ np.sqrt(last_bin_test_events['Total bkg'])
+        
+        print("Comparing last bin content in histogram vs table\n")
+        
+        print(f"Signa diffl: {signal_hist[-1] - last_bin_test_events[SIGNAL[0]]}")
+        print(f"Background diff: {background_hist[-1] - last_bin_test_events['Total bkg']}")
+        print(f"Signal-to-noise ratio diff: {signal_to_noise_ratio[-1]-last_bin_test_events['Sgn/Bkg']}")    
 
         # Creating DataFrame to save 
         df_tmp = pd.DataFrame({

@@ -13,7 +13,7 @@ MODELS_RELATIVE_FOLDER_PATH = 'models/'
 
 DATA_FILENAME_WITHOUT_FILETYPE = 'ntuples-ggFVBF2jet-SF-28Jan24'
 CUT = 'ggFVBF2jet-SF-28Jan24'
-EXPERIMENT_ID = '240425_I' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
+EXPERIMENT_ID = '240520_II' # DATE + ID: YYMMDD + rome numericals: I, II, III, IV, V, VI, VII, VIII, IX, X
 
 ########################################################## SIGNAL & VARIABLES  ##########################################################
 
@@ -21,8 +21,8 @@ SIGNAL_CHANNEL = ['VBF']
 BACKGROUND_CHANNEL = ['Zjets', 'ttbar','WW'] # order in size event weight or MC samples
 
 SELECTED_OTHER_VARIABLES = ['eventType','label','eventNumber','weight']
-SELECTED_PHYSICAL_VARIABLES = ['DPhill', 'DYjj', 'mjj', 'mll', 'mT', 'ptTot','sumOfCentralitiesL','mL1J1', 'mL1J2', 'mL2J1', 'mL2J2','ptJ1','ptJ2','ptJ3','METSig'] # https://gitlab.cern.ch/bejaeger/sfusmlkit/-/blob/master/configs/HWW/train.cfg (row 18)
-SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad?','?eV','?eV','','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV','?eV',''] # Is it really GeV? units? '' empty for unitless
+SELECTED_PHYSICAL_VARIABLES = ['DPhill', 'DYjj', 'mjj', 'mll', 'mT', 'ptTot', 'centralityL1', 'centralityL2', 'mL1J1', 'mL1J2', 'mL2J1', 'mL2J2', 'ptJ1', 'ptJ2', 'ptJ3', 'METSig', 'DRl0j0', 'DRl0j1', 'DRl1j0', 'DRl1j1']
+SELECTED_PHYSICAL_VARIABLES_UNITS = ['rad','Unitless','GeV','GeV','GeV','GeV','Unitless','Unitless','GeV','GeV','GeV','GeV' ,'GeV' ,'GeV'  ,'GeV'  ,'Unitless', 'Unitless','Unitless','Unitless','Unitless','Unitless'] # Is it really GeV? units? '' empty for unitless
 
 CLASS_WEIGHT = 'MC_EACH_bkg_as_sgn' #alternatives are 'raw', 'MC_EACH_bkg_as_sgn', 'MC_TOTAL_bkg_as_sgn', 'CW_EACH_bkg_as_sgn', 'CW_TOTAL_bkg_as_sgn'
 
@@ -46,11 +46,13 @@ print(f"EventType ratio:{CHANNEL_EVENT_WEIGHT_RATIO}")
 
 ########################################################## CLASSIFICATION PROBLEM TYPE ##########################################################
 
-CLASSIFICATION_TYPE = 'binary' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
+CLASSIFICATION_TYPE = 'multi_class' #'multi_class', 'binary' (multi-label is not relevant since each event is a definite process and not a mix of processes)
 K_FOLD = 1 # number of k-folds for cross-validation
 
-#Name Wrapper for sklearn based models
+########################################################## MODEL WRAPPER CLASS ##########################################################
+# Wrapper helper class used to name the classifier for sklearn 
 from sklearn.base import BaseEstimator
+
 class NamedClassifier(BaseEstimator):
     def __init__(self, classifier, name=None):
         self.classifier = classifier
@@ -66,23 +68,14 @@ class NamedClassifier(BaseEstimator):
         # Delegate attribute access to the wrapped classifier if not defined in NamedClassifier
         return getattr(self.classifier, attr)
 
-########################### SKLEARN MODEL IMPORTS ###########################
+########################### MODEL IMPORTS ###########################
 
-# Wrapper helper class used to name the classifier for sklearn 
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT / class_weights need integers
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC # in TMVA SVM
-from sklearn.neighbors import KNeighborsClassifier # in TMVA KNN / no class_weight
-
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import BaggingClassifier
-from sklearn.tree import DecisionTreeClassifier
-
+# All scikit-learn models are supported including wrapper models for XGBoost, LightGBM, CatBoost, and others
 from sklearn.neural_network import MLPClassifier # in TMVA DNN
-
-########################### SKLEARN WRAPPER MODELS ###########################
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import HistGradientBoostingClassifier # in TMVA BDT / class_weights need integers
+from sklearn.linear_model import SGDClassifier
 
 #XGBoost
 # uses a sklearn wrapper class for XGBoost https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier
@@ -93,41 +86,39 @@ from xgboost import XGBClassifier
 #BalancedRandomForest 
 # From https://imbalanced-learn.org/stable/index.html
 from imblearn.ensemble import BalancedRandomForestClassifier
-from imblearn.ensemble import RUSBoostClassifier
 
-###########################  MODELS ###########################
 
-#MLP = NamedClassifier(MLPClassifier(),name = "MLP")
+# LightGBM
+# From https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.LGBMClassifier.html
+
+from lightgbm import LGBMClassifier 
+
+MLP = NamedClassifier(MLPClassifier(),name = "MLP")
 RF = NamedClassifier(RandomForestClassifier(),name = "RF")
-#LR = NamedClassifier(LogisticRegression(max_iter = 1000, class_weight='balanced'),name = "LR") # 
-#AdaBoost = NamedClassifier(AdaBoostClassifier(estimator = DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "AdaBoost")
-#Bagging = NamedClassifier(BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200),name = "Bagging")  
-#HGBC = NamedClassifier(HistGradientBoostingClassifier(),name = "HGBC")
-#KNN = NamedClassifier(KNeighborsClassifier(),name = "KNN")
+LR = NamedClassifier(LogisticRegression(),name = "LR") # 
+HGBC = NamedClassifier(HistGradientBoostingClassifier(),name = "HGBC") # inspiered by y LightGBM.
+SGD = NamedClassifier(SGDClassifier(loss='modified_huber'),name = "SGD") 
 
-#XGB = NamedClassifier(XGBClassifier(n_estimators=200, max_depth = 10, learning_rate = 0.0001,scale_pos_weight=1/0.0003609388),name = "XGB") # Benjamin uses learning_rate and max_depth
+XGB = NamedClassifier(XGBClassifier(),name = "XGB") 
 
-#BRF = NamedClassifier(BalancedRandomForestClassifier(n_estimators=200),name = "BRF")
-#RUSBC = NamedClassifier(RUSBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1),n_estimators=200, learning_rate=1.0),name = "RUSBC")
+BRF = NamedClassifier(BalancedRandomForestClassifier(),name = "BRF")
 
 
+LGBM = NamedClassifier(LGBMClassifier(),name = "LGBM")
+
+# If name = BENCHMARK it will not be included in ensambles
 MODELS = [
-    #XGB,
-    RF,
-    #LR,
-    #AdaBoost,
-    #Bagging,
-    #HGBC,
-    #SVC,
-    #KNN,
     #MLP,
-    #RUSBC,
-    #BRF
+    RF,
+    LR,    
+    #HGBC,
+    #SGD,
+    #XGB,
+    BRF,
+    LGBM
 ]
-# bench: 
-# see fit keras model for specifics 
-#BENCHMARK_MODEL = NamedClassifier(MLP,name = "BENCHMARK")   
-#MODELS.append(BENCHMARK_MODEL)
+
+
 
 ######################################################################################################################################
 ############################################################### MODULES ##############################################################
@@ -147,9 +138,8 @@ create_dataframe(DATA_RELATIVE_FOLDER_PATH,
                  SELECTED_PHYSICAL_VARIABLES)
 
 """
+
 # Old root file arleady in dataframe
-
-
 #"""
 with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb') as f:
     df = pickle.load(f)
@@ -160,12 +150,12 @@ with open(f'{DATA_RELATIVE_FOLDER_PATH+DATA_FILENAME_WITHOUT_FILETYPE}.pkl', 'rb
 # multiple variables plots 
 """
 from tools.create_pretty_histograms import create_pretty_histograms    
-overflow_underflow_percentile = {'lower_bound': 5, 'upper_bound': 95} # ex 1% and 99% percentile, all data outside this range will be added to the last and first bin respectively
-bins = 7
+overflow_underflow_percentile = {'lower_bound': 10, 'upper_bound': 90} # ex 1% and 99% percentile, all data outside this range will be added to the last and first bin respectively
+bins = 19
 plot_type = 'prefit' # 'postfit
 signal_envelope_scale = 5000 # easier to guess than to scale dynamically 
 
-NORMALIZE_WEIGHTS = False
+NORMALIZE_WEIGHTS = True
 
 for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABLES_UNITS):
     create_pretty_histograms(df, 
@@ -189,7 +179,7 @@ for variable, unit in zip(SELECTED_PHYSICAL_VARIABLES, SELECTED_PHYSICAL_VARIABL
 
 ########################################################## 3. DATA PREPROCESSING ##########################################################
 
-#"""
+"""
 from tools.pre_process_data import pre_process_data
 
 training_data_size = 0.8
@@ -207,10 +197,10 @@ for k_fold in range(1, K_FOLD+1):
                      CLASS_WEIGHT,
                      SIGNAL_CHANNEL,
                      BACKGROUND_CHANNEL)
-#"""
+"""
 ########################################################## 4. Fit/TRAINING ##########################################################
 
-#"""
+"""
 from tools.fit_models import fit_models
 
 fit_models(DATA_RELATIVE_FOLDER_PATH,
@@ -222,7 +212,7 @@ fit_models(DATA_RELATIVE_FOLDER_PATH,
         SELECTED_PHYSICAL_VARIABLES,
         MODELS_RELATIVE_FOLDER_PATH,
         CLASSIFICATION_TYPE)
-#"""
+"""
 
 ########################################################## 5. EVALUATE MODELS ##########################################################
 

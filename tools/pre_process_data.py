@@ -53,7 +53,7 @@ def pre_process_data(df: pd.DataFrame,
 
         dfs_bkg = []
         for bkg in BACKGROUND_CHANNEL:
-            dfs_bkg.append(df[df['label'] == bkg].sample(n=signal_MCSamples, random_state=RANDOM_SEED))
+            dfs_bkg.append(df[df['label'] == bkg].sample(n=signal_MCSamples*5, random_state=RANDOM_SEED))
         
         df = pd.concat([df_sgn] + dfs_bkg)
 

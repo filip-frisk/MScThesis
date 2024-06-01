@@ -51,22 +51,22 @@ def fit_models(DATA_RELATIVE_FOLDER_PATH: str,
             if CLASSIFICATION_TYPE == 'binary':
                 
                 # as XGB does not support string labels, we need to convert them to 0 and 1
-                if model.name == 'XGB':
+                if model.name == 'XGB' or 'LGBM':
                     df_train['eventType'] = df_train['eventType'].map({'Signal': 0,'Background': 1})
       
                 model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['eventType']) # predict: 'Background' or 'Signal' (not 0 or 1)
 
-                if model.name == 'XGB':
+                if model.name == 'XGB' or 'LGBM':
                     df_train['eventType'] = df_train['eventType'].map({0: 'Signal',1: 'Background'})
                 
             elif CLASSIFICATION_TYPE == 'multi_class':
 
-                if model.name == 'XGB':
+                if model.name == 'XGB' or 'LGBM':
                     df_train['label'] = df_train['label'].map({'VBF': 0,'WW': 1,'Zjets': 2,'ttbar': 3})                
                 
                 model.fit(df_train[SELECTED_PHYSICAL_VARIABLES], df_train['label']) # predict: label  
 
-                if model.name == 'XGB':
+                if model.name == 'XGB' or 'LGBM':
                     df_train['label'] = df_train['label'].map({0: 'VBF',1: 'WW',2: 'Zjets',3: 'ttbar'})
             
             else:
